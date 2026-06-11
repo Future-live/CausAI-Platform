@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设置</title>
+    <link rel="stylesheet" href="/static/css/global-style.css"> 全局样式文件
+    <style>
+        /* 弹窗的整体样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 50%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slide-down 0.5s ease;
+        }
+
+        /* 弹出动画 */
+        @keyframes slide-down {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            margin-top: 20px;
+        }
+
+        .setting-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        .setting-option:hover {
+            background-color: #f1f1f1;
+        }
+
+        .setting-option label {
+            width: 150px;
+            margin-right: 10px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .setting-option select,
+        .setting-option input[type="color"] {
+            padding: 5px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-option select:focus,
+        .setting-option input[type="color"]:focus {
+            border-color: #2980b9;
+        }
+
+        .setting-option button {
+            background-color: #1e2b52;
+            color: var(--text-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .setting-option button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-top: auto;
+            margin-bottom: 1cm;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .user-info img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info span {
+            color: rgb(250, 248, 248);
+            display: none;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: -100px;
+            right: 0;
+            background: rgb(170, 177, 220);
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 5px;
+            z-index: 1003;
+        }
+
+        .user-dropdown a {
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+        }
+
+        .user-dropdown a:hover {
+            background-color: #273c75;
+        }
+    </style>
+</head>
+<body>
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>设置</h2>
+        <div class="modal-body">
+            <div class="setting-option">
+                <label for="language-select">语言切换:</label>
+                <select id="language-select">
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div class="setting-option">
+                <label for="theme-select">主题颜色:</label>
+                <select id="theme-select">
+                    <option value="light">浅色模式</option>
+                    <option value="dark">深色模式</option>
+                </select>
+            </div>
+            <div class="setting-option">
+                <label for="color-select">主色调:</label>
+                <input type="color" id="color-select" value="#273c75">
+            </div>
+            <div class="setting-option">
+                <button id="clear-cache">清理缓存</button>
+                <button id="restore-defaults">恢复默认</button>
+            </div>
+            <div class="setting-option">
+                <button id="view-account">账号管理</button>
+                <button id="logout">退出登录</button>
+            </div>
+            <div class="setting-option">
+                <button id="view-system-info">系统信息</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('settings-modal');
+        var closeBtn = document.querySelector('.close');
+
+        // 显示弹窗
+        window.openSettingsModal = function() {
+            modal.style.display = 'block';
+        };
+
+        // 点击关闭按钮，隐藏弹窗
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // 点击窗口外部，隐藏弹窗
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // 各功能按钮实现
+        document.getElementById('clear-cache').addEventListener('click', function() {
+            alert('缓存已清理');
+        });
+
+        document.getElementById('restore-defaults').addEventListener('click', function() {
+            alert('已恢复默认设置');
+        });
+
+        document.getElementById('view-account').addEventListener('click', function() {
+            alert('账号管理页面正在开发中...');
+        });
+
+        document.getElementById('logout').addEventListener('click', function() {
+            alert('您已成功退出登录');
+        });
+
+        document.getElementById('view-system-info').addEventListener('click', function() {
+            alert('系统版本: 1.0.0\n更新日志:\n- 添加新功能\n- 修复已知问题');
+        });
+    });
+</script>
+</body>
+</html>

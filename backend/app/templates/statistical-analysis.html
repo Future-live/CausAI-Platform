@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <style>
+
+        /* 主内容容器 */
+        .main-content {
+            display: flex;
+            background-color: #f6f8fc; /* 背景色 */
+            flex-direction: column; /* 垂直排列：顶部是 tab-buttons，下面是内容区域 */
+            width: 100%; /* 占满屏幕宽度 */
+            height: 100%; /* 可选：占满屏幕高度 */
+            box-sizing: border-box;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        /* Tab 按钮容器样式 */
+        .tab-buttons {
+            display: flex; /* 使用 Flexbox */
+            justify-content: flex-start; /* 水平靠左对齐 */
+            gap: 8px; /* 按钮之间的间距 */
+            border: 1px solid #dce2ec;
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 6px;
+            margin-bottom: 0; /* 与内容之间的间距 */
+            box-shadow: 0 2px 6px rgba(39, 60, 117, 0.08);
+        }
+
+        /* 内容区域（fields-container 和 chart-area） */
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .visual{
+            display: flex; 
+            flex-direction: row; /* 水平排列 */
+            flex: 1; /* 占据剩余空间 */
+            overflow: hidden; /* 防止内容溢出 */
+            gap: 10px;
+            min-height: 0;
+        }
+        
+
+        .tab-content {
+            display: none; /* 默认隐藏所有内容版块 */
+        }
+
+        /* 左侧字段区域 */
+        .fields-container {
+            display: flex; /* 使用 Flexbox 布局 */
+            flex-direction: row; /* 设置为水平排列 */
+            width: 32%;
+            min-width: 430px;
+            max-width: 540px;
+            /* max-width: 250px; */
+            margin-left: 0;
+            /* margin-right: 5px; */
+            background-color: #ffffff; /* 背景色 */
+            border: 1px solid #dce2ec;
+            border-radius: 6px;
+            overflow: hidden; /* 支持垂直滚动 */
+            box-shadow: 0 2px 6px rgba(39, 60, 117, 0.06);
+            gap: 8px;
+            padding: 8px;
+        }
+
+        /* 右侧图表区域 */
+        .chart-area {
+            flex: 1;    
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #ffffff; /* 背景色 */
+            border: 1px solid #dce2ec;
+            border-radius: 6px;
+            margin-right: 0;
+            /* padding: 20px; */
+            box-sizing: border-box;
+            overflow: hidden; /* 防止图表内容溢出 */
+            min-width: 0;
+            box-shadow: 0 2px 6px rgba(39, 60, 117, 0.06);
+        }
+
+
+        /* Tab 按钮样式 */
+        .tab-button {
+            min-height: 34px;
+            padding: 6px 16px; /* 设置内边距，按钮大小自适应内容 */
+            background-color: transparent; /* 默认背景透明 */
+            border: none; /* 移除默认边框 */
+            border-radius: 5px;
+            font-size: 14px; /* 字体大小 */
+            font-weight: bold; /* 字体加粗 */
+            color: #666; /* 默认字体颜色 */
+            cursor: pointer; /* 鼠标悬停时显示手型 */
+            outline: none; /* 移除点击时的轮廓 */
+            position: relative; /* 伪元素定位需要 */
+        }
+
+        /* 激活状态的按钮 */
+        .tab-button.active {
+            color: #ffffff; /* 激活状态字体颜色 */
+            background: #273c75;
+            font-weight: bold; /* 激活状态字体加粗 */
+        }
+
+        /* 激活状态的下划线 */
+        .tab-button.active::after {
+            content: ''; /* 创建下划线 */
+            position: absolute;
+            left: 0;
+            right: 0;
+            display: none;
+            bottom: -1px; /* 下划线紧贴按钮 */
+            height: 3px; /* 下划线高度 */
+            background-color: #273c75; /* 下划线颜色 */
+            border-radius: 2px; /* 添加圆角 */
+            transform: scaleX(1); /* 下划线完全展开 */
+            transition: transform 0.3s ease; /* 添加过渡效果 */
+        }
+
+        /* 非激活按钮悬停效果 */
+        .tab-button:hover {
+            color: #273c75; /* 鼠标悬停时字体颜色变化 */
+            background: #eef3ff;
+        }
+
+        /* 激活按钮的下划线默认展开 */
+        .tab-button.active:hover::after {
+            transform: scaleX(1); /* 鼠标悬停下划线仍展开 */
+        }
+
+        #fields {
+            list-style: none;
+            padding: 8px;
+            margin: 0;
+            flex: 1; /* 占据剩余高度 */
+            overflow-y: auto; /* 启用滚动条 */
+            border: none;
+            border-radius: 4px;
+            background-color: #ffffff;
+            min-width: 0;
+        }
+
+        #fields li {
+            font-size: 13px;
+            padding: 9px 10px;
+            margin: 6px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef3f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #2f3746;
+            transition: background-color 0.2s, transform 0.2s, color 0.2s, border-color 0.2s;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px;
+            align-items: center;
+        }
+
+        #fields li:hover {
+            background: #273c75;
+            border-color: #273c75;
+            color: white;
+            transform: translateX(2px);
+        }
+
+        #fields li.is-used {
+            background: #3498db;
+            border-color: #3498db;
+            color: #fff;
+        }
+
+        .field-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 700;
+        }
+
+        .field-meta {
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: #fff;
+            color: #5d6b82;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        #fields li:hover .field-meta,
+        #fields li.is-used .field-meta {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        #fields h2 {
+            text-align: center; /* 水平居中 */
+            margin: 4px 0 10px;
+            color: #202938;
+            font-size: 20px;
+            line-height: 1.2;
+        }
+
+        /* drop-zone-container 的样式 */
+        .drop-zone-container {
+            flex: 1; /* 占据剩余宽度 */
+            display: flex; /* 内部也可以使用 Flexbox */
+            flex-direction: column; /* 垂直排列 */
+            gap: 8px; /* Drop Zones 之间的间距 */
+            padding: 6px; /* 内边距 */
+            background-color: #fbfcff; /* Drop Zone 区域背景色 */
+            border: none;
+            border-left: 1px solid #e4e8f1;
+            border-radius: 0;
+            box-sizing: border-box;
+            overflow-y: auto; /* 支持垂直滚动 */
+        }
+
+        /* drop-zone 的样式 */
+        .drop-zone {
+            width: 100%; /* 占满父级宽度 */
+            min-height: 52px; /* Drop Zone 高度 */
+            box-sizing: border-box;
+            display: flex;
+            align-items: center; /* 垂直居中 */
+            justify-content: space-between; /* 水平居中 */
+            background-color: #ffffff;
+            border: 1px dashed #c9d2e3;
+            border-radius: 4px;
+            color: #7d8798;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .drop-zone .zone-main {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+            flex: 1;
+            padding-right: 8px;
+        }
+
+        .drop-zone .zone-label {
+            color: #30425f;
+            font-size: 12px;
+        }
+
+        .drop-zone .zone-value {
+            color: #97a3b6;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .drop-zone .zone-badge {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            border: 1px solid #d6deeb;
+            color: #7c8aa0;
+            padding: 2px 7px;
+            font-size: 11px;
+            background: #f8fafc;
+        }
+
+        .drop-zone.active {
+            background: #273c75;
+            border-color: #273c75;
+            color: #fff;
+        }
+
+        .drop-zone.active .zone-label,
+        .drop-zone.active .zone-value,
+        .drop-zone.active .zone-badge {
+            color: #fff;
+        }
+
+        .drop-zone.active .zone-badge {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.32);
+        }
+
+        .drop-zone:hover {
+            background-color: #eef3ff;
+            border-color: #273c75;
+            transform: none;
+        }
+
+        .drop-zone::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 0 0 rgba(39, 60, 117, 0);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        .drop-zone:hover::after {
+            box-shadow: inset 0 0 0 2px rgba(39, 60, 117, 0.08);
+        }
+
+        .drop-zone::before,
+        .drop-zone::after {
+            pointer-events: none;
+        }
+
+        .chart-status {
+            margin: 0;
+            padding: 8px 14px 0;
+            min-height: 28px;
+            font-size: 13px;
+            color: #5f6b7a;
+        }
+
+        .chart-status.error {
+            color: #c0392b;
+        }
+
+        .chart-status.success {
+            color: #1f8f67;
+        }
+
+        #chart {
+            flex-grow: 1;
+            border-top: 1px solid #e4e8f1;
+            border-radius: 0;
+            padding: 14px;
+            min-height: 0;
+            background:
+                radial-gradient(circle at 20% 8%, rgba(76, 191, 255, 0.10), transparent 34%),
+                linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%);
+            display: block;
+            position: relative;
+            overflow: hidden;
+            color: #3b4556;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .chart-empty {
+            width: min(360px, 80%);
+            padding: 22px;
+            border: 1px dashed #c9d2e3;
+            border-radius: 8px;
+            text-align: center;
+            color: #5f6b7a;
+            background: #ffffff;
+        }
+
+        .chart-empty small {
+            display: block;
+            margin-top: 8px;
+            color: #8a94a6;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        #chart svg {
+            cursor: grab;
+            display: block;
+        }
+
+        .chart-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            min-height: 42px;
+            margin-bottom: 8px;
+        }
+
+        .chart-heading strong {
+            display: block;
+            color: #1f2a44;
+            font-size: 16px;
+            line-height: 1.2;
+        }
+
+        .chart-heading span {
+            display: block;
+            margin-top: 4px;
+            color: #718096;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .chart-badge {
+            flex: 0 0 auto;
+            padding: 5px 9px;
+            border-radius: 999px;
+            color: #1d3f61;
+            background: #eaf7ff;
+            border: 1px solid #cceeff;
+            font-size: 12px;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: calc(100% - 54px);
+            min-height: 330px;
+        }
+
+        .chart-axis path,
+        .chart-axis line {
+            stroke: #cfd7e6;
+        }
+
+        .chart-axis text {
+            fill: #526078;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .chart-grid line {
+            stroke: #e6ebf3;
+            stroke-dasharray: 3 4;
+        }
+
+        .chart-grid path {
+            display: none;
+        }
+
+        .dragged-block {
+            position: absolute;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0.9;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(18, 28, 45, 0.94);
+            color: #ffffff;
+            padding: 9px 11px;
+            border-radius: 7px;
+            pointer-events: none;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+            white-space: nowrap;
+            z-index: 20;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+        }
+
+        .tooltip div {
+            display: flex;
+            gap: 14px;
+            justify-content: space-between;
+            min-width: 120px;
+            line-height: 1.7;
+        }
+
+        .tooltip b {
+            color: #a7d8ff;
+            font-weight: 700;
+        }
+
+        .pixel-grid-wrap {
+            height: calc(100% - 54px);
+            min-height: 330px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            align-content: start;
+        }
+
+        .pixel-panel {
+            background: #fff;
+            border: 1px solid #e3eaf5;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+
+        .pixel-panel strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #26364f;
+            font-size: 13px;
+        }
+
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(16, minmax(8px, 1fr));
+            gap: 3px;
+        }
+
+        .pixel-grid span {
+            aspect-ratio: 1;
+            border-radius: 3px;
+        }
+
+        .chart-type-buttons {
+            display: flex;
+            gap: 8px; /* 按钮之间的间距 */
+            padding: 10px 12px;
+            justify-content: flex-start;
+            flex-wrap: wrap; /* 当空间不足时换行 */
+            background-color: #fff;
+            border: none;
+            border-bottom: 1px solid #e4e8f1;
+            border-radius: 6px 6px 0 0;
+            box-shadow: none;
+        }
+
+        .chart-type-buttons button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 7px 14px;
+            border: none;
+            border-radius: 5px; /* 圆角按钮 */
+            background-color: #273c75; /* 深蓝色背景 */
+            color: #ffffff; /* 白色文字 */
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chart-type-buttons button.secondary-action {
+            background: #f4f7fb;
+            color: #273c75;
+            border: 1px solid #d8e0ee;
+        }
+
+        .chart-type-buttons button.active {
+            background-color: #1e2b52;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+        }
+
+        .chart-type-buttons button:hover {
+            transform: translateY(-1px);
+        }
+
+        /* 自定义滚动条样式 */
+        #fields::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #fields::-webkit-scrollbar-thumb {
+            background-color: #1e2b52;
+            border-radius: 4px;
+        }
+
+        /* 卡片式 Top-bar 样式 */
+        .topbar {
+            display: flex;
+            justify-content: flex-start; /* 内容靠左对齐 */
+            align-items: center; /* 内容垂直居中 */
+            padding: 15px 20px; /* 内边距：上下15px，左右20px */
+            background-color: #ffffff; /* 背景颜色：白色 */
+            border: 1px solid #e5e7eb; /* 边框：浅灰色 */
+            border-radius: 4px; /* 圆角：8px */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影：轻微提升 */
+            font-family: Arial, sans-serif; /* 字体 */
+            font-size: 14px; /* 字体大小 */
+            color: #374151; /* 字体颜色：深灰 */
+            margin: 0 0 8px 0; /* 顺序为：上 右 下 左 */
+            position: sticky; /* 固定在顶部 */
+            top: 0; /* 距顶部 0 */
+            transition: box-shadow 0.3s ease; /* 动态效果：悬停时有变化 */
+        }
+
+        /* 卡片的悬停效果（可选） */
+        .topbar:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 鼠标悬停时增强阴影 */
+        }
+
+        /* 文本样式 */
+        .topbar .results-text {
+            margin: 0;
+            padding: 0;
+            font-weight: 500; /* 字体加粗 */
+            color: #6b7280; /* 次要文字颜色 */
+        }
+
+        .datacontainer {
+            flex: 1;
+            height: auto; /* 固定高度 */
+            position: relative; /* 创建滚动上下文 */
+            min-height: 0;
+            max-height: none; /* 最大高度限制 */
+            overflow-x: auto; /* 支持水平滚动 */
+            max-width: 100%; /* 确保容器宽度 */
+            overflow-y: auto; /* 启用垂直滚动 */
+            background-color: #ffffff; /* 背景颜色：白色 */
+            border: 1px solid #e5e7eb; /* 边框：浅灰色 */
+            border-radius: 4px; /* 圆角：8px */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影：轻微提升 */
+            font-family: Arial, sans-serif; /* 字体 */
+            font-size: 14px; /* 字体大小 */
+            color: #374151; /* 字体颜色：深灰 */
+            margin: 0; /* 顺序为：上 右 下 左 */
+            transition: box-shadow 0.3s ease; /* 动态效果：悬停时有变化 */
+        }
+
+        /* 卡片的悬停效果（可选） */
+        .datacontainer:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 鼠标悬停时增强阴影 */
+        }
+
+        /* Table styling */
+        .data-table {
+            width: 100%;
+            position: static;
+            border-collapse: collapse;
+        }
+
+        /* 表头固定样式 */
+        .data-table thead th {
+            position: sticky;
+            top: 0; /* 表头固定在顶部 */
+            z-index: 20; /* 确保在内容上层 */
+            height: 40px; /* 根据需求设置表头高度 */
+            background-color: #ffffff; /* 表头背景色 */
+            color: #1f2937; /* 表头字体颜色 */
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-right: 1px solid #e5e7eb; /* 纵向分割线 */
+            border-bottom: 2px solid #d1d5db; /* 表头底部边框 */
+            height: 40px; /* 固定表头高度 */
+        }
+
+        /* 表头上方带颜色条 */
+        .data-table thead th::before {
+            content: '';
+            display: block;
+            height: 4px; /* 彩条高度 */
+            background-color: #273c75; /* 彩条颜色（可调整为其他颜色） */
+            position: absolute;
+            top: 0; /* 紧贴顶部 */
+            left: 0;
+            width: 100%;
+            z-index: 15; /* 确保彩条位于表头下方 */
+        }
+
+        .data-table thead th:last-child {
+            border-right: none; /* 最后一列不需要右侧分割线 */
+        }
+        /* 表体行样式 */
+        .data-table tbody tr {
+            transition: background-color 0.3s ease;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f4f8fc; /* 较浅的背景色 */
+        }
+
+        .data-table tbody tr:nth-child(odd) {
+            background-color: #ffffff; /* 白色背景 */
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #eaf2fe; /* 鼠标悬停高亮 */
+        }
+        
+
+        /* 单元格样式 */
+        .data-table td {
+            padding: 10px;
+            text-align: center;
+            border-right: 1px solid #e5e7eb; /* 纵向分割线 */
+            border-bottom: 1px solid #e5e7eb; /* 单元格底部边框 */
+        }
+
+        .data-table td:last-child {
+            border-right: none; /* 最后一列不需要右侧分割线 */
+        }
+
+        .data-table tbody td {
+            font-size: 14px; /* 设置字体大小 */
+            font-weight: normal; /* 设置字体粗细，可选值：normal, bold, bolder, lighter */
+            color: #374151; /* 设置字体颜色 */
+            padding: 10px; /* 设置单元格的内边距 */
+            text-align: center; /* 设置文本对齐方式，可选值：left, center, right */
+            vertical-align: middle; /* 确保内容垂直居中 */
+            border-bottom: 1px solid #e5e7eb; /* 设置单元格底部边框 */
+        }
+
+        @media (max-width: 1180px) {
+            .visual {
+                flex-direction: column;
+            }
+
+            .fields-container {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+                min-height: 220px;
+            }
+
+            .chart-area {
+                min-height: 420px;
+            }
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="menu-logo">
+                <!-- 第一个SVG图标 -->    
+                <a href="index.html" class="logo">
+                    <svg id="icon-1" width="29" height="30" viewBox="0 0 60 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M32.7559 8.84226C32.7559 5.86885 36.3719 4.40339 38.442 6.53787L57.5161 26.2056C58.7723 27.5009 59.4748 29.2344 59.4748 31.0388V53.8041C59.4748 56.7775 55.8588 58.243 53.7887 56.1085L34.7146 36.4407C33.4584 35.1454 32.7559 33.4119 32.7559 31.6075V8.84226Z" fill="#FF9500"/>
+                        <path d="M16.1973 8.19578C16.1973 5.22237 19.8133 3.75691 21.8834 5.89139L40.676 25.2689C42.1127 26.7503 42.9162 28.733 42.9162 30.7966V53.1576C42.9162 56.131 39.3002 57.5965 37.2301 55.462L18.156 35.7942C16.8998 34.4989 16.1973 32.7654 16.1973 30.9611V8.19578Z" fill="#4CBFFF"/>
+                        <path d="M0.193359 8.84226C0.193359 5.86885 3.80941 4.40339 5.87947 6.53787L24.9536 26.2056C26.2098 27.5009 26.9123 29.2344 26.9123 31.0388V53.8041C26.9123 56.7775 23.2963 58.243 21.2262 56.1085L2.15209 36.4407C0.895891 35.1454 0.193359 33.4119 0.193359 31.6075V8.84226Z" fill="white"/>
+                    </svg>
+                </a>
+                <!-- 第二个SVG图标 -->
+                <a href="index.html" class="logo">
+                    <svg id="icon-2" width="58" height="13" viewBox="0 0 116 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11.7296 25.9745C8.14072 25.9745 5.35405 24.8451 3.36961 22.5862C1.40628 20.3273 0.424609 17.1817 0.424609 13.1495C0.424609 9.15951 1.39572 6.02451 3.33794 3.74451C5.28017 1.46451 8.06683 0.324511 11.6979 0.324511C13.8724 0.324511 15.7302 0.736178 17.2713 1.55951C18.8124 2.36173 20.0157 3.48062 20.8813 4.91618C21.7468 6.35173 22.2535 7.9984 22.4013 9.85618H17.1129C16.9441 8.12507 16.3846 6.77396 15.4346 5.80284C14.4846 4.81062 13.2496 4.31451 11.7296 4.31451C9.8085 4.31451 8.36239 5.08507 7.39128 6.62618C6.42017 8.16729 5.93461 10.3523 5.93461 13.1812C5.93461 16.1156 6.43072 18.3217 7.42294 19.7995C8.43628 21.2562 9.86128 21.9845 11.6979 21.9845C13.2813 21.9845 14.5374 21.4778 15.4663 20.4645C16.4163 19.4512 16.9652 18.1106 17.1129 16.4428H22.4013C22.2535 18.3006 21.7468 19.9473 20.8813 21.3828C20.0157 22.8184 18.8124 23.9478 17.2713 24.7712C15.7513 25.5734 13.9041 25.9745 11.7296 25.9745ZM32.0279 25.8795C30.2546 25.8795 28.7979 25.4573 27.6579 24.6128C26.5179 23.7473 25.6735 22.5651 25.1246 21.0662C24.5757 19.5673 24.3013 17.8678 24.3013 15.9678C24.3013 14.0045 24.5757 12.284 25.1246 10.8062C25.6946 9.3284 26.5496 8.17784 27.6896 7.35451C28.8296 6.53118 30.2652 6.11951 31.9963 6.11951C33.3263 6.11951 34.4135 6.3834 35.2579 6.91118C36.1235 7.41784 36.7779 8.10396 37.2213 8.96951H37.9813V6.49951H42.7313V25.4995H37.9813V23.0295H37.2213C36.7779 23.8317 36.1341 24.5073 35.2896 25.0562C34.4452 25.6051 33.3579 25.8795 32.0279 25.8795ZM33.3579 22.2695C34.6457 22.2695 35.6696 21.7101 36.4296 20.5912C37.2107 19.4512 37.6013 17.9206 37.6013 15.9995C37.6013 14.0573 37.2107 12.5267 36.4296 11.4078C35.6696 10.289 34.6457 9.72951 33.3579 9.72951C32.1968 9.72951 31.2785 10.2573 30.6029 11.3128C29.9485 12.3473 29.6213 13.9095 29.6213 15.9995C29.6213 18.0895 29.9485 19.6623 30.6029 20.7178C31.2785 21.7523 32.1968 22.2695 33.3579 22.2695ZM53.5687 25.9745C51.4576 25.9745 49.8637 25.3095 48.787 23.9795C47.7104 22.6495 47.172 20.8445 47.172 18.5645V6.49951H52.302V17.7095C52.302 18.9973 52.5343 20.0001 52.9987 20.7178C53.4631 21.4356 54.2126 21.7945 55.247 21.7945C56.4926 21.7945 57.4531 21.309 58.1287 20.3378C58.8043 19.3667 59.142 18.174 59.142 16.7595V6.49951H64.272V25.4995H59.6487V22.6495H58.8887C58.572 23.5995 57.9915 24.3912 57.147 25.0245C56.3026 25.6578 55.1098 25.9745 53.5687 25.9745ZM76.0421 25.9745C73.931 25.9745 72.2421 25.6473 70.9755 24.9928C69.7299 24.3173 68.8116 23.4728 68.2205 22.4595C67.6505 21.4462 67.3232 20.4328 67.2388 19.4195H72.1155C72.221 19.9684 72.4427 20.4751 72.7805 20.9395C73.1394 21.3828 73.6038 21.7312 74.1738 21.9845C74.7649 22.2378 75.4721 22.3645 76.2955 22.3645C77.3088 22.3645 78.0371 22.1956 78.4805 21.8578C78.9238 21.499 79.1455 21.0451 79.1455 20.4962C79.1455 19.9895 78.9344 19.5673 78.5121 19.2295C78.111 18.8706 77.446 18.5434 76.5171 18.2478L74.2371 17.4878C73.1394 17.1078 72.126 16.6962 71.1971 16.2528C70.2682 15.7884 69.5188 15.1973 68.9488 14.4795C68.3999 13.7617 68.1255 12.8328 68.1255 11.6928C68.1255 10.004 68.7694 8.64229 70.0571 7.60785C71.3449 6.55229 73.171 6.02451 75.5355 6.02451C77.2455 6.02451 78.6388 6.2884 79.7155 6.81618C80.8132 7.34396 81.6366 8.05118 82.1855 8.93784C82.7344 9.8034 83.051 10.764 83.1355 11.8195H78.4488C78.3432 11.0595 78.0266 10.479 77.4988 10.0778C76.971 9.65562 76.2532 9.44451 75.3455 9.44451C74.5221 9.44451 73.8994 9.60284 73.4771 9.91951C73.076 10.2362 72.8755 10.669 72.8755 11.2178C72.8755 11.7667 73.0971 12.2206 73.5405 12.5795C73.9838 12.9384 74.6594 13.2656 75.5671 13.5612L77.8471 14.2895C78.9449 14.6273 79.9477 15.0284 80.8555 15.4928C81.7844 15.9362 82.5232 16.5273 83.0721 17.2662C83.621 17.984 83.8955 18.9234 83.8955 20.0845C83.8955 21.8578 83.2199 23.2828 81.8688 24.3595C80.5388 25.4362 78.5966 25.9745 76.0421 25.9745ZM84.2631 25.4995V25.3095L91.7048 0.79951H100.033L107.506 25.3095V25.4995H102.06L96.0748 4.91618H95.3148L89.2664 25.4995H84.2631ZM90.4381 19.3245L91.5464 15.3345H99.8431L100.951 19.3245H90.4381ZM110.166 25.4995V0.79951H115.486V25.4995H110.166Z" fill="white"/>
+                    </svg>
+                </a>
+            </div>
+            <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+            <a href="data-preparation.html"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+            <a href="statistical-analysis.html"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+            <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+            <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+            <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
+            <div class="user-info" onclick="toggleDropdown()" onmouseleave="hideDropdown()">
+                <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+                <span>用户名</span>
+                <div class="user-dropdown">
+                    <a href="profile.html">个人信息</a>
+                    <a href="logout.html">退出系统</a>
+                    <a href="javascript:void(0);" onclick="openSettingsModal()" id="settings-button">设置</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tab-buttons">
+                <button class="tab-button" onclick="showTab('data-display')">数据</button>
+                <button class="tab-button active" onclick="showTab('visualization')">可视化</button>
+            </div>
+
+            <div id="visualization" class="tab-content">
+            <div class = 'visual'>
+
+                <div class="fields-container">
+                    <ul id="fields">
+                        <h2>字段列表</h2>
+                        {% for column in columns %}
+                        <li draggable="true" ondragstart="drag(event)" ondragend="endDrag(event)" id="{{ column }}" data-field="{{ column }}">
+                            <span class="field-name">{{ column }}</span>
+                            <small class="field-meta">字段</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="drop-zone-container">
+                        <div class="drop-zone" ondrop="drop(event, 'x')" ondragover="allowDrop(event)" data-var-type="X 轴">
+                            <span class="zone-main"><span class="zone-label">X 轴</span><span class="zone-value">拖入自变量 / 横轴</span></span><span class="zone-badge">required</span>
+                        </div>
+                        <div class="drop-zone" ondrop="drop(event, 'y')" ondragover="allowDrop(event)" data-var-type="Y 轴">
+                            <span class="zone-main"><span class="zone-label">Y 轴</span><span class="zone-value">拖入指标 / 纵轴</span></span><span class="zone-badge">required</span>
+                        </div>
+                        <div class="drop-zone" ondrop="drop(event, 'color')" ondragover="allowDrop(event)"
+                            data-var-type="颜色">
+                            <span class="zone-main"><span class="zone-label">颜色</span><span class="zone-value">分组或类别变量</span></span><span class="zone-badge">optional</span>
+                        </div>
+                        <div class="drop-zone" ondrop="drop(event, 'size')" ondragover="allowDrop(event)"
+                            data-var-type="大小">
+                            <span class="zone-main"><span class="zone-label">大小</span><span class="zone-value">数值字段映射点大小</span></span><span class="zone-badge">optional</span>
+                        </div>
+                        <div class="drop-zone" ondrop="drop(event, 'opacity')" ondragover="allowDrop(event)"
+                            data-var-type="透明度">
+                            <span class="zone-main"><span class="zone-label">透明度</span><span class="zone-value">数值字段映射透明度</span></span><span class="zone-badge">optional</span>
+                        </div>
+                        <button onclick="generateChart()">生成图表</button>
+                    </div>
+                </div>
+                <div class="chart-area">
+                    <div class="chart-type-buttons">
+                        <button id="scatter-button" class="active" onclick="setChartType('scatter')">散点图</button>
+                        <button id="bar-button" onclick="setChartType('bar')">条形图</button>
+                        <button id="line-button" onclick="setChartType('line')">折线图</button>
+                        <button id="boxplot-button" onclick="setChartType('boxplot')">箱线图</button>
+                        <button id="pixel-button" onclick="setChartType('pixel')">像素图</button>
+
+                        <button class="export-button" onclick="exportChart()">导出图表</button>
+                        <button class="secondary-action" onclick="saveCurrentChartFavorite()"><i class="fas fa-star"></i> 收藏图表</button>
+
+                        <button id="causal-button" onclick="location.href='causal-analysis.html'">
+                            <i class="fas fa-brain"></i> 因果分析
+                        </button>
+                    </div>
+                    <div id="chart-status" class="chart-status">拖动字段到 X 轴和 Y 轴后会自动生成图表。</div>
+                    <div id="chart">
+                        <div class="tooltip" id="tooltip">
+
+                        </div>
+                        <div class="chart-empty">
+                            生成的图表将显示在这里
+                            <small>拖动字段到 X 轴和 Y 轴，或点击上方图表类型切换视图。</small>
+                        </div>
+                    </div>
+                </div>      
+            </div>
+        </div>
+        <!-- 数据版面 -->
+        <div id="data-display" class="tab-content">
+            <div id = "top-bar" class="topbar">
+
+            </div>
+            <div id="data-container" class="datacontainer">
+                <!-- 数据表将动态插入到此处 -->
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettingsModal()">&times;</span>
+            <h2>设置</h2>
+            <div class="modal-body">
+                <div class="setting-option">
+                    <label for="language-select">语言切换:</label>
+                    <select id="language-select">
+                        <option value="zh">中文</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                <div class="setting-option">
+                    <label for="theme-select">主题颜色:</label>
+                    <select id="theme-select">
+                        <option value="light">浅色模式</option>
+                        <option value="dark">深色模式</option>
+                    </select>
+                </div>
+                <div class="setting-option">
+                    <label for="color-select">主色调:</label>
+                    <input type="color" id="color-select" value="#273c75">
+                </div>
+                <div class="setting-option">
+                    <button id="clear-cache">清理缓存</button>
+                    <button id="restore-defaults">恢复默认</button>
+                </div>
+                <div class="setting-option">
+                    <button id="view-account">账号管理</button>
+                    <button id="logout">退出登录</button>
+                </div>
+                <div class="setting-option">
+                    <button id="view-system-info">系统信息</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+
+        let dropData = {
+            x: null,
+            y: null,
+            color: null,
+            size: null,
+            opacity: null
+        };
+
+        let chartType = 'scatter';
+        let draggedBlock = null;
+        let autoChartTimer = null;
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function showChartStatus(message, type = '') {
+            const status = document.getElementById('chart-status');
+            if (!status) {
+                return;
+            }
+            status.textContent = message;
+            status.className = type ? `chart-status ${type}` : 'chart-status';
+        }
+
+        function hasRequiredChartFields() {
+            if (chartType === 'pixel') {
+                return Boolean(dropData.x || dropData.y);
+            }
+            return Boolean(dropData.x && dropData.y);
+        }
+
+        function renderDropZoneContent(dropZone, axis, value) {
+            const labels = {
+                x: ['X 轴', '拖入自变量 / 横轴', 'required'],
+                y: ['Y 轴', '拖入指标 / 纵轴', 'required'],
+                color: ['颜色', '分组或类别变量', 'optional'],
+                size: ['大小', '数值字段映射点大小', 'optional'],
+                opacity: ['透明度', '数值字段映射透明度', 'optional']
+            };
+            const [label, hint, badge] = labels[axis] || [dropZone.getAttribute('data-var-type'), '', ''];
+            dropZone.innerHTML = `
+                <span class="zone-main">
+                    <span class="zone-label">${label}</span>
+                    <span class="zone-value">${value || hint}</span>
+                </span>
+                <span class="zone-badge">${value ? 'selected' : badge}</span>
+            `;
+            dropZone.classList.toggle('active', Boolean(value));
+            dropZone.style.backgroundColor = '';
+            dropZone.style.color = '';
+        }
+
+        function scheduleAutoChart() {
+            if (autoChartTimer) {
+                clearTimeout(autoChartTimer);
+            }
+            if (!hasRequiredChartFields()) {
+                showChartStatus('已选择字段，请继续拖入 X 轴和 Y 轴后自动生成图表。');
+                return;
+            }
+            showChartStatus('字段已更新，正在生成图表...');
+            autoChartTimer = setTimeout(() => generateChart(true), 260);
+        }
+
+        function loadFieldMetadata() {
+            fetch('/api/get-statistics')
+                .then(response => response.json())
+                .then(items => {
+                    const meta = new Map(items.map(item => [item.name, item]));
+                    document.querySelectorAll('#fields li').forEach(item => {
+                        const info = meta.get(item.dataset.field || item.id);
+                        const badge = item.querySelector('.field-meta');
+                        if (!badge || !info) {
+                            return;
+                        }
+                        badge.textContent = info.type === 'numerical' ? '数值' : '类别';
+                        badge.title = `缺失 ${info.missing || 0}，唯一值 ${info.unique || 0}`;
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function toggleDropdown() {
+            var dropdown = document.querySelector('.user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function hideDropdown() {
+            var dropdown = document.querySelector('.user-dropdown');
+            dropdown.style.display = 'none';
+        }
+
+        function drag(event) {
+            const source = event.target.closest('#fields li');
+            if (!source) {
+                return;
+            }
+            const block = document.createElement('div');
+            block.className = 'dragged-block';
+            block.innerText = source.dataset.field || source.id;
+            // document.body.appendChild(block);
+            draggedBlock = block;
+
+            event.dataTransfer.setData("text", source.dataset.field || source.id);
+            document.addEventListener('mousemove', moveBlock);
+        }
+        function moveBlock(event) {
+            if (draggedBlock) {
+                draggedBlock.style.left = (event.pageX + 10) + 'px';  // 确保方块跟随鼠标光标
+                draggedBlock.style.top = (event.pageY + 10) + 'px';
+            }
+        }
+        function updateFieldColors() {
+            const fieldItems = document.querySelectorAll("#fields li");  // 获取所有字段列表项
+            fieldItems.forEach(item => {
+                // 检查 dropData 中是否有对应的字段
+                if (Object.values(dropData).includes(item.id)) {
+                    item.classList.add('is-used');
+                } else {
+                    item.classList.remove('is-used');
+                }
+            });
+        }
+        function drop(event, axis) {
+            event.preventDefault();
+            let data = event.dataTransfer.getData("text");
+
+
+            dropData[axis] = data;
+            const dropZone = event.target.closest ? event.target.closest('.drop-zone') : null;
+            if (!dropZone) {
+                return;
+            }
+            renderDropZoneContent(dropZone, axis, data);
+
+            if (draggedBlock) {
+                draggedBlock.remove();
+                draggedBlock = null;
+                document.removeEventListener('mousemove', moveBlock);
+            }
+            updateFieldColors();
+            scheduleAutoChart();
+
+        }
+        const axisMap = {
+            'x 轴': 'x',
+            'y 轴': 'y',
+            '颜色': 'color',
+            '大小': 'size',
+            '透明度': 'opacity'
+        };
+
+        function endDrag(event) {
+            if (draggedBlock) {
+                draggedBlock.remove();
+                draggedBlock = null;
+                document.removeEventListener('mousemove', moveBlock);
+            }
+
+            if (event.target.classList.contains('drop-zone')) {
+                // 获取当前拖放区的 axis 值
+                const axisLabel = event.target.getAttribute('data-var-type').toLowerCase();
+
+                // 使用映射对象将 axisLabel 转换为 dropData 中的属性名
+                const axis = axisMap[axisLabel];
+                // 清除拖放区内容
+                event.target.innerText = event.target.getAttribute('data-var-type');
+                event.target.style.backgroundColor = '#f4f4f9';
+                event.target.style.color = '#aaaaaa';
+
+                if (axis) {
+                    dropData[axis] = null;
+                }
+            }
+
+            updateFieldColors();
+            scheduleAutoChart();
+        }
+
+
+        function setChartType(type) {
+            chartType = type;
+
+            // 移除所有按钮的活动状态
+            document.getElementById('scatter-button').classList.remove('active');
+            document.getElementById('bar-button').classList.remove('active');
+            document.getElementById('line-button').classList.remove('active');
+            document.getElementById('boxplot-button').classList.remove('active');
+            document.getElementById('pixel-button').classList.remove('active');
+
+            // 设置当前选中按钮为活跃状态
+            if (type === 'scatter') {
+                document.getElementById('scatter-button').classList.add('active');
+            } else if (type === 'bar') {
+                document.getElementById('bar-button').classList.add('active');
+            } else if (type === 'line') {
+                document.getElementById('line-button').classList.add('active');
+            } else if (type === 'boxplot') {
+                document.getElementById('boxplot-button').classList.add('active');
+            } else if (type === 'pixel') {
+                document.getElementById('pixel-button').classList.add('active');
+            }
+
+            scheduleAutoChart();
+        }
+
+
+        function renderBoxPlotChart(data, xField, yField) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            
+            const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+            const width = chart.clientWidth - margin.left - margin.right;
+            const height = chart.clientHeight - margin.top - margin.bottom;
+
+            const svg = d3.select(chart)
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // 计算五数概括
+            const groupedData = d3.groups(data, d => d[xField]);
+            const boxData = groupedData.map(([key, values]) => {
+                const sorted = values.map(d => +d[yField]).sort(d3.ascending);
+                const q1 = d3.quantile(sorted, 0.25);
+                const median = d3.quantile(sorted, 0.5);
+                const q3 = d3.quantile(sorted, 0.75);
+                const iqr = q3 - q1;
+                const min = d3.min(sorted);
+                const max = d3.max(sorted);
+
+                return { key, min, q1, median, q3, max };
+            });
+
+            // 设定比例尺
+            const x = d3.scaleBand()
+                .domain(boxData.map(d => d.key))
+                .range([0, width])
+                .padding(0.2);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(boxData, d => d.min), d3.max(boxData, d => d.max)])
+                .range([height, 0]);
+
+            // 绘制X轴
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickSize(0))
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-0.8em")
+                .attr("dy", "0.15em")
+                .attr("transform", "rotate(-45)");
+
+            // 绘制Y轴
+            svg.append('g')
+                .call(d3.axisLeft(y).ticks(10));
+
+            // 绘制盒图
+            svg.selectAll('.box')
+                .data(boxData)
+                .enter()
+                .append('rect')
+                .attr('x', d => x(d.key))
+                .attr('y', d => y(d.q3))
+                .attr('height', d => y(d.q1) - y(d.q3))
+                .attr('width', x.bandwidth() * 0.6)
+                .attr('fill', "#90C978")
+                .attr('stroke', "black")
+                .attr('stroke-width', 1);
+
+            // 中位数线
+            svg.selectAll('.median-line')
+                .data(boxData)
+                .enter()
+                .append('line')
+                .attr('x1', d => x(d.key))
+                .attr('x2', d => x(d.key) + x.bandwidth() * 0.6)
+                .attr('y1', d => y(d.median))
+                .attr('y2', d => y(d.median))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1.5);
+
+            // 绘制胡须（最小值和最大值）
+            svg.selectAll('.whisker-min')
+                .data(boxData)
+                .enter()
+                .append('line')
+                .attr('x1', d => x(d.key) + x.bandwidth() * 0.3)
+                .attr('x2', d => x(d.key) + x.bandwidth() * 0.3)
+                .attr('y1', d => y(d.min))
+                .attr('y2', d => y(d.q1))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+
+            svg.selectAll('.whisker-max')
+                .data(boxData)
+                .enter()
+                .append('line')
+                .attr('x1', d => x(d.key) + x.bandwidth() * 0.3)
+                .attr('x2', d => x(d.key) + x.bandwidth() * 0.3)
+                .attr('y1', d => y(d.max))
+                .attr('y2', d => y(d.q3))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+
+            // 绘制最小值和最大值的短横线
+            svg.selectAll('.min-line')
+                .data(boxData)
+                .enter()
+                .append('line')
+                .attr('x1', d => x(d.key) + x.bandwidth() * 0.2)
+                .attr('x2', d => x(d.key) + x.bandwidth() * 0.4)
+                .attr('y1', d => y(d.min))
+                .attr('y2', d => y(d.min))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+
+            svg.selectAll('.max-line')
+                .data(boxData)
+                .enter()
+                .append('line')
+                .attr('x1', d => x(d.key) + x.bandwidth() * 0.2)
+                .attr('x2', d => x(d.key) + x.bandwidth() * 0.4)
+                .attr('y1', d => y(d.max))
+                .attr('y2', d => y(d.max))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+
+            // 生成解释内容
+            let explanation = "<h3>盒图结果解释</h3>";
+            boxData.forEach(d => {
+                explanation += `<p><strong>${d.key}:</strong> 最小值=${d.min}, 第一四分位数(Q1)=${d.q1}, 中位数=${d.median}, 第三四分位数(Q3)=${d.q3}, 最大值=${d.max}.</p>`;
+            });
+
+            // 在界面上显示解释内容
+            const explanationEl = document.getElementById('chart-explanation');
+            if (explanationEl) {
+                explanationEl.innerHTML = explanation;
+            }
+        }
+
+
+
+        function generateChart(isAuto = false) {
+            if (!hasRequiredChartFields()) {
+                showChartStatus(
+                    chartType === 'pixel' ? '请至少选择一个字段变量。' : '请先将字段拖入 X 轴和 Y 轴。',
+                    isAuto ? '' : 'error'
+                );
+                return;
+            }
+
+            showChartStatus('图表生成中...');
+            fetch('/api/generate-chart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ...dropData, chartType })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showChartStatus(data.error, 'error');
+                    return;
+                }
+
+                if (chartType === 'line') {
+                    renderLineChart(data.plot_data, data.x_axis, data.y_axis);
+                } else if (chartType === 'scatter') {
+                    renderScatterChart(data.plot_data, data.x_axis, data.y_axis, data.color, data.size, data.opacity);
+                } else if (chartType === 'bar') {
+                    renderBarChart(data.plot_data, data.x_axis, data.y_axis, data.color);
+                } else if (chartType === 'boxplot') {
+                    renderBoxPlotChart(data.plot_data, data.x_axis, data.y_axis);
+                } else if (chartType === 'pixel') {
+                    // 选择维度并绘制像素图
+                    const selectedDimensions = [data.x_axis, data.y_axis]; // 替换为实际选择的维度
+                    renderPixelVisualization(data.plot_data, selectedDimensions);
+                }
+
+                // 显示数据表
+                populateDataTable(data.plot_data, data.x_axis, data.y_axis, data.color, data.size, data.opacity);
+                const dataTableContainer = document.getElementById('data-table-container');
+                if (dataTableContainer) {
+                    dataTableContainer.classList.remove('active');
+                }
+                const toggleTableButton = document.querySelector('.toggle-table-button');
+                if (toggleTableButton) {
+                    toggleTableButton.innerText = '展开数据表';
+                }
+                showChartStatus('图表已根据当前字段配置更新。', 'success');
+            })
+            .catch(error => {
+                showChartStatus('图表生成失败，请检查字段类型或稍后重试。', 'error');
+            });
+        }
+
+        function renderBarChart(data, xField, yField, colorField) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            const tooltip = document.getElementById('tooltip');
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+            const width = chart.clientWidth - margin.left - margin.right;
+            const height = chart.clientHeight - margin.top - margin.bottom;
+
+            const svg = d3.select(chart)
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .domain(data.map(d => d[xField]))
+                .range([0, width])
+                .padding(0.2);  // 调整条形之间的间距
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => +d[yField])])
+                .nice()  // 使y轴更平滑
+                .range([height, 0]);
+
+            // 修改这里的代码，减少显示的x轴刻度数量
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickValues(x.domain().filter(function (d, i) { return !(i % Math.ceil(data.length / 25)); })));
+
+            svg.append('g')
+                .call(d3.axisLeft(y));
+
+            svg.selectAll('.bar')
+                .data(data)
+                .enter()
+                .append('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d[xField]))
+                .attr('y', d => y(d[yField]))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(d[yField]))
+                .attr('fill', d => colorField ? d3.scaleOrdinal(d3.schemeCategory10)(d[colorField]) : '#69b3a2')
+                .on('mouseover', function (event, d) {
+                    if (tooltip) {
+                        tooltip.style.opacity = 1;
+                        tooltip.innerHTML = `${xField}: ${d[xField]}<br>${yField}: ${d[yField]}`;
+                    }
+                    d3.select(this).attr('stroke', '#333').attr('stroke-width', 2);
+                })
+                .on('mousemove', function (event) {
+                    if (tooltip) {
+                        tooltip.style.left = (event.pageX + 10) + 'px';
+                        tooltip.style.top = (event.pageY - 25) + 'px';
+                    }
+                })
+                .on('mouseout', function () {
+                    if (tooltip) {
+                        tooltip.style.opacity = 0;
+                    }
+                    d3.select(this).attr('stroke', 'none');
+                });
+        }
+
+        function renderPixelVisualization(data, dimensions) {
+            const container = document.getElementById('chart');
+            container.innerHTML = ''; // 清空已有的内容
+
+            // 设置每个矩阵的大小和像素格尺寸
+            const numRows = 10; // 每个矩阵行数
+            const numCols = 10; // 每个矩阵列数
+            const pixelSize = 10; // 每个像素格的大小
+
+            dimensions.forEach(dimension => {
+                // 为每个维度创建一个单独的容器
+                const dimensionContainer = document.createElement('div');
+                dimensionContainer.style.display = 'grid';
+                dimensionContainer.style.gridTemplateRows = `repeat(${numRows}, ${pixelSize}px)`;
+                dimensionContainer.style.gridTemplateColumns = `repeat(${numCols}, ${pixelSize}px)`;
+                dimensionContainer.style.border = '1px solid #ccc';
+                dimensionContainer.style.margin = '10px';
+                dimensionContainer.style.width = `${numCols * pixelSize}px`;
+                dimensionContainer.style.height = `${numRows * pixelSize}px`;
+
+                // 计算该维度数据的最小值和最大值，用于颜色映射
+                const values = data.map(d => d[dimension]);
+                const minValue = Math.min(...values);
+                const maxValue = Math.max(...values);
+
+                // 创建像素格子，并根据值设置颜色
+                values.slice(0, numRows * numCols).forEach(value => {
+                    const pixel = document.createElement('div');
+                    const intensity = (value - minValue) / (maxValue - minValue); // 归一化
+                    const colorValue = 255 - Math.round(intensity * 255);
+                    pixel.style.width = `${pixelSize}px`;
+                    pixel.style.height = `${pixelSize}px`;
+                    pixel.style.backgroundColor = `rgb(${colorValue},${colorValue},${colorValue})`;
+                    dimensionContainer.appendChild(pixel);
+                });
+
+                // 添加标题
+                const title = document.createElement('div');
+                title.innerText = dimension;
+                title.style.textAlign = 'center';
+                title.style.fontSize = '14px';
+                title.style.marginTop = '5px';
+
+                container.appendChild(dimensionContainer);
+                container.appendChild(title);
+            });
+        }
+
+
+
+        function clearSelection(axis) {
+            dropData[axis] = null;
+            const dropZone = document.querySelector(`.drop-zone[data-var-type="${axis === 'x' ? 'X 轴' : axis === 'y' ? 'Y 轴' : axis === 'color' ? '颜色' : axis === 'size' ? '大小' : '透明度'}"]`);
+            if (dropZone) {
+                renderDropZoneContent(dropZone, axis, null);
+            }
+        }
+
+        function renderScatterChart(data, xField, yField, colorField, sizeField, opacityField) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            const tooltip = document.getElementById('tooltip');
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+            const width = chart.clientWidth - margin.left - margin.right;
+            const height = chart.clientHeight - margin.top - margin.bottom;
+
+            const svg = d3.select(chart)
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .call(d3.zoom().on("zoom", function (event) {
+                    svg.attr("transform", event.transform);
+                }))
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleLinear()
+                .domain(d3.extent(data, d => +d[xField]))
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain(d3.extent(data, d => +d[yField]))
+                .range([height, 0]);
+
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(10))
+                .append('text')
+                .attr('x', width / 2)
+                .attr('y', margin.bottom - 10)
+                .attr('fill', '#333')
+                .style('font-size', '14px')
+                .style('text-anchor', 'middle')
+                .text(xField);
+
+            svg.append('g')
+                .call(d3.axisLeft(y).ticks(10))
+                .append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', -margin.left + 20)
+                .attr('fill', '#333')
+                .style('font-size', '14px')
+                .style('text-anchor', 'middle')
+                .text(yField);
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            const size = d3.scaleLinear()
+                .domain([0, d3.max(data, d => sizeField ? +d[sizeField] : 0)])
+                .range([5, 20]);
+
+            const opacity = d3.scaleLinear()
+                .domain([0, d3.max(data, d => opacityField ? +d[opacityField] : 1)])
+                .range([0.2, 1]);
+
+            svg.selectAll('circle')
+                .data(data)
+                .enter()
+                .append('circle')
+                .attr('cx', d => x(d[xField]))
+                .attr('cy', d => y(d[yField]))
+                .attr('r', d => sizeField ? size(d[sizeField]) : 10)
+                .attr('fill', d => colorField ? color(d[colorField]) : '#69b3a2')
+                .attr('opacity', d => opacityField ? opacity(d[opacityField]) : 0.7)
+                .attr('stroke', '#333')
+                .on('mouseover', function (event, d) {
+                    let tooltipContent = `${xField}: ${d[xField]}<br>${yField}: ${d[yField]}`;
+                    if (colorField) {
+                        tooltipContent += `<br>${colorField}: ${d[colorField]}`;
+                    }
+                    if (sizeField) {
+                        tooltipContent += `<br>${sizeField}: ${d[sizeField]}`;
+                    }
+                    if (opacityField) {
+                        tooltipContent += `<br>${opacityField}: ${d[opacityField]}`;
+                    }
+                    tooltip.style.opacity = 1;
+                    tooltip.innerHTML = tooltipContent;
+                })
+                .on('mousemove', function (event) {
+                    tooltip.style.left = (event.pageX + 10) + 'px';
+                    tooltip.style.top = (event.pageY - 25) + 'px';
+                })
+                .on('mouseout', function () {
+                    tooltip.style.opacity = 0;
+                });
+        }
+
+        function renderPixelVisualization(data, dimensions) {
+            const container = document.getElementById('chart'); // 使用相同的容器
+            container.innerHTML = ''; // 清空已有内容
+
+            // 设置每个矩阵的大小和像素格尺寸
+            const numRows = 20; // 增加行数以提升清晰度
+            const numCols = 10; // 增加列数
+            const pixelSize = 10; // 减小每个像素格的大小
+
+            dimensions.forEach(dimension => {
+                // 为每个维度创建一个单独的容器
+                const dimensionContainer = document.createElement('div');
+                dimensionContainer.style.display = 'grid';
+                dimensionContainer.style.gridTemplateRows = `repeat(${numRows}, ${pixelSize}px)`;
+                dimensionContainer.style.gridTemplateColumns = `repeat(${numCols}, ${pixelSize}px)`;
+                dimensionContainer.style.border = '1px solid #ccc';
+                dimensionContainer.style.margin = '10px';
+                dimensionContainer.style.width = `${numCols * pixelSize}px`;
+                dimensionContainer.style.height = `${numRows * pixelSize}px`;
+
+                // 计算该维度数据的最小值和最大值，用于颜色映射
+                const values = data.map(d => d[dimension]);
+                const minValue = Math.min(...values);
+                const maxValue = Math.max(...values);
+
+                // 创建像素格子，并根据值设置颜色
+                values.slice(0, numRows * numCols).forEach(value => {
+                    const pixel = document.createElement('div');
+                    const intensity = (value - minValue) / (maxValue - minValue); // 归一化
+                    const colorValue = 255 - Math.round(intensity * 255); // 灰度值从白（255）到黑（0）
+                    pixel.style.width = `${pixelSize}px`;
+                    pixel.style.height = `${pixelSize}px`;
+                    pixel.style.backgroundColor = `rgb(${colorValue},${colorValue},${colorValue})`; // 灰度颜色
+                    dimensionContainer.appendChild(pixel);
+                });
+
+                // 添加标题
+                const title = document.createElement('div');
+                title.innerText = dimension;
+                title.style.textAlign = 'center';
+                title.style.fontSize = '14px';
+                title.style.marginTop = '5px';
+
+                container.appendChild(dimensionContainer);
+                container.appendChild(title);
+            });
+        }
+
+
+        function renderLineChart(data, xField, yField) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            const tooltip = document.getElementById('tooltip');
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+            const width = chart.clientWidth - margin.left - margin.right;
+            const height = chart.clientHeight - margin.top - margin.bottom;
+
+            const svg = d3.select(chart)
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .call(d3.zoom().on("zoom", function (event) {
+                    svg.attr("transform", event.transform);
+                }))
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleLinear()
+                .domain([0, data.length - 1])
+                .range([0, width]);
+
+            const yX = d3.scaleLinear()
+                .domain(d3.extent(data, d => +d[xField]))
+                .range([height, 0]);
+
+            const yY = d3.scaleLinear()
+                .domain(d3.extent(data, d => +d[yField]))
+                .range([height, 0]);
+
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(data.length));
+
+            svg.append('g')
+                .call(d3.axisLeft(yX).ticks(10))
+                .append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', -margin.left + 20)
+                .attr('fill', '#1f77b4')
+                .style('font-size', '14px')
+                .style('text-anchor', 'middle')
+                .text(xField);
+
+            svg.append('g')
+                .attr('transform', `translate(${width},0)`)
+                .call(d3.axisRight(yY).ticks(10))
+                .append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', margin.right - 20)
+                .attr('fill', '#ff7f0e')
+                .style('font-size', '14px')
+                .style('text-anchor', 'middle')
+                .text(yField);
+
+            const lineX = d3.line()
+                .x((d, i) => x(i))
+                .y(d => yX(d[xField]))
+                .curve(d3.curveMonotoneX);  // 平滑折线
+
+            const lineY = d3.line()
+                .x((d, i) => x(i))
+                .y(d => yY(d[yField]))
+                .curve(d3.curveMonotoneX);  // 平滑折线
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#1f77b4")  // 选择一种颜色用于X轴折线
+                .attr("stroke-width", 2)
+                .attr("d", lineX);
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#ff7f0e")  // 选择一种颜色用于Y轴折线
+                .attr("stroke-width", 2)
+                .attr("d", lineY);
+
+            // 添加点到图表中
+            svg.selectAll('circle.x-point')
+                .data(data)
+                .enter()
+                .append('circle')
+                .attr('class', 'x-point')
+                .attr('cx', (d, i) => x(i))
+                .attr('cy', d => yX(d[xField]))
+                .attr('r', 4)
+                .attr('fill', '#1f77b4')
+                .on('mouseover', function (event, d) {
+                    tooltip.style.opacity = 1;
+                    tooltip.innerHTML = `${xField}: ${d[xField]}`;
+                    tooltip.style.left = (event.pageX + 10) + 'px';
+                    tooltip.style.top = (event.pageY - 25) + 'px';
+                })
+                .on('mousemove', function (event) {
+                    tooltip.style.left = (event.pageX + 10) + 'px';
+                    tooltip.style.top = (event.pageY - 25) + 'px';
+                })
+                .on('mouseout', function () {
+                    tooltip.style.opacity = 0;
+                });
+
+            svg.selectAll('circle.y-point')
+                .data(data)
+                .enter()
+                .append('circle')
+                .attr('class', 'y-point')
+                .attr('cx', (d, i) => x(i))
+                .attr('cy', d => yY(d[yField]))
+                .attr('r', 4)
+                .attr('fill', '#ff7f0e')
+                .on('mouseover', function (event, d) {
+                    tooltip.style.opacity = 1;
+                    tooltip.innerHTML = `${yField}: ${d[yField]}`;
+                    tooltip.style.left = (event.pageX + 10) + 'px';
+                    tooltip.style.top = (event.pageY - 25) + 'px';
+                })
+                .on('mousemove', function (event) {
+                    tooltip.style.left = (event.pageX + 10) + 'px';
+                    tooltip.style.top = (event.pageY - 25) + 'px';
+                })
+                .on('mouseout', function () {
+                    tooltip.style.opacity = 0;
+                });
+        }
+
+        const modernChartTheme = {
+            ink: '#1f2a44',
+            muted: '#6b7890',
+            grid: '#e5ebf4',
+            axis: '#cbd5e1',
+            primary: '#2563eb',
+            secondary: '#14b8a6',
+            accent: '#f59e0b',
+            danger: '#ef4444',
+            palette: ['#2563eb', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316']
+        };
+
+        const chartTypeLabel = {
+            scatter: '散点图',
+            bar: '条形图',
+            line: '折线图',
+            boxplot: '箱线图',
+            pixel: '像素图'
+        };
+
+        function createChartSurface(kind, title, subtitle) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = `
+                <div class="tooltip" id="tooltip"></div>
+                <div class="chart-heading">
+                    <div>
+                        <strong>${title}</strong>
+                        <span>${subtitle}</span>
+                    </div>
+                    <div class="chart-badge">${chartTypeLabel[kind] || '图表'}</div>
+                </div>
+                <div class="chart-canvas"></div>
+            `;
+            const canvas = chart.querySelector('.chart-canvas');
+            const margin = { top: 18, right: 26, bottom: 48, left: 58 };
+            const width = Math.max(360, canvas.clientWidth - margin.left - margin.right);
+            const height = Math.max(260, canvas.clientHeight - margin.top - margin.bottom);
+            const svg = d3.select(canvas)
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`);
+            const plot = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+            return { chart, canvas, tooltip: document.getElementById('tooltip'), svg, plot, width, height, margin };
+        }
+
+        function numericValues(data, field) {
+            return data.map(d => Number(d[field])).filter(Number.isFinite);
+        }
+
+        function paddedExtent(values) {
+            const min = d3.min(values);
+            const max = d3.max(values);
+            if (!Number.isFinite(min) || !Number.isFinite(max)) {
+                return [0, 1];
+            }
+            if (min === max) {
+                const pad = Math.abs(min || 1) * 0.1;
+                return [min - pad, max + pad];
+            }
+            const pad = (max - min) * 0.08;
+            return [min - pad, max + pad];
+        }
+
+        function styleAxis(selection) {
+            selection.attr('class', 'chart-axis');
+            selection.selectAll('.domain').attr('stroke', modernChartTheme.axis);
+            selection.selectAll('line').attr('stroke', modernChartTheme.axis);
+            selection.selectAll('text').attr('fill', modernChartTheme.muted);
+        }
+
+        function addYAxisGrid(plot, y, width) {
+            plot.append('g')
+                .attr('class', 'chart-grid')
+                .call(d3.axisLeft(y).ticks(6).tickSize(-width).tickFormat(''));
+        }
+
+        function labelAxes(plot, width, height, xLabel, yLabel) {
+            plot.append('text')
+                .attr('x', width / 2)
+                .attr('y', height + 38)
+                .attr('text-anchor', 'middle')
+                .attr('fill', modernChartTheme.muted)
+                .attr('font-size', 12)
+                .attr('font-weight', 700)
+                .text(xLabel);
+            plot.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', -42)
+                .attr('text-anchor', 'middle')
+                .attr('fill', modernChartTheme.muted)
+                .attr('font-size', 12)
+                .attr('font-weight', 700)
+                .text(yLabel);
+        }
+
+        function tooltipHtml(rows) {
+            return rows.map(([label, value]) => `<div><b>${label}</b><span>${value ?? '-'}</span></div>`).join('');
+        }
+
+        function showTooltip(event, rows) {
+            const tooltip = document.getElementById('tooltip');
+            if (!tooltip) return;
+            tooltip.style.opacity = 1;
+            tooltip.innerHTML = tooltipHtml(rows);
+            tooltip.style.left = `${event.pageX + 12}px`;
+            tooltip.style.top = `${event.pageY - 28}px`;
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            if (tooltip) tooltip.style.opacity = 0;
+        }
+
+        function renderScatterChart(data, xField, yField, colorField, sizeField, opacityField) {
+            const { plot, width, height } = createChartSurface(
+                'scatter',
+                `${yField} 与 ${xField} 的关系`,
+                colorField ? `按 ${colorField} 着色，可继续拖入大小或透明度变量。` : '拖入颜色、大小、透明度变量可以继续扩展编码。'
+            );
+            const x = d3.scaleLinear().domain(paddedExtent(numericValues(data, xField))).range([0, width]);
+            const y = d3.scaleLinear().domain(paddedExtent(numericValues(data, yField))).range([height, 0]).nice();
+            const color = d3.scaleOrdinal().domain([...new Set(data.map(d => d[colorField]))]).range(modernChartTheme.palette);
+            const sizeValues = numericValues(data, sizeField);
+            const size = d3.scaleSqrt().domain(paddedExtent(sizeValues.length ? sizeValues : [1, 1])).range([5, 16]);
+            const opacityValues = numericValues(data, opacityField);
+            const opacity = d3.scaleLinear().domain(paddedExtent(opacityValues.length ? opacityValues : [1, 1])).range([0.38, 0.92]);
+
+            addYAxisGrid(plot, y, width);
+            styleAxis(plot.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x).ticks(8)));
+            styleAxis(plot.append('g').call(d3.axisLeft(y).ticks(6)));
+            labelAxes(plot, width, height, xField, yField);
+
+            plot.append('g')
+                .selectAll('circle')
+                .data(data.filter(d => Number.isFinite(+d[xField]) && Number.isFinite(+d[yField])))
+                .enter()
+                .append('circle')
+                .attr('cx', d => x(+d[xField]))
+                .attr('cy', d => y(+d[yField]))
+                .attr('r', d => sizeField ? size(+d[sizeField]) : 7)
+                .attr('fill', d => colorField ? color(d[colorField]) : modernChartTheme.primary)
+                .attr('opacity', d => opacityField ? opacity(+d[opacityField]) : 0.74)
+                .attr('stroke', '#ffffff')
+                .attr('stroke-width', 1.5)
+                .on('mouseover', function (event, d) {
+                    d3.select(this).attr('stroke', modernChartTheme.ink).attr('stroke-width', 2);
+                    showTooltip(event, [
+                        [xField, d[xField]],
+                        [yField, d[yField]],
+                        ...(colorField ? [[colorField, d[colorField]]] : []),
+                        ...(sizeField ? [[sizeField, d[sizeField]]] : []),
+                        ...(opacityField ? [[opacityField, d[opacityField]]] : [])
+                    ]);
+                })
+                .on('mousemove', function (event, d) { showTooltip(event, [[xField, d[xField]], [yField, d[yField]]]); })
+                .on('mouseout', function () {
+                    d3.select(this).attr('stroke', '#ffffff').attr('stroke-width', 1.5);
+                    hideTooltip();
+                });
+        }
+
+        function renderBarChart(data, xField, yField, colorField) {
+            const rows = data.slice(0, 80);
+            const { plot, width, height } = createChartSurface(
+                'bar',
+                `${yField} 按 ${xField} 对比`,
+                rows.length < data.length ? `已展示前 ${rows.length} 条记录，避免图表过密。` : '适合比较类别、分组或离散记录的指标差异。'
+            );
+            const x = d3.scaleBand().domain(rows.map(d => String(d[xField]))).range([0, width]).padding(0.26);
+            const y = d3.scaleLinear().domain([0, d3.max(rows, d => +d[yField]) || 1]).nice().range([height, 0]);
+            const color = d3.scaleOrdinal().domain([...new Set(rows.map(d => d[colorField]))]).range(modernChartTheme.palette);
+
+            addYAxisGrid(plot, y, width);
+            styleAxis(plot.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x).tickValues(x.domain().filter((_, i) => !(i % Math.max(1, Math.ceil(rows.length / 12)))))));
+            styleAxis(plot.append('g').call(d3.axisLeft(y).ticks(6)));
+            labelAxes(plot, width, height, xField, yField);
+
+            plot.selectAll('.bar')
+                .data(rows)
+                .enter()
+                .append('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(String(d[xField])))
+                .attr('y', d => y(+d[yField]))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(+d[yField]))
+                .attr('rx', 6)
+                .attr('fill', d => colorField ? color(d[colorField]) : modernChartTheme.secondary)
+                .attr('opacity', 0.9)
+                .on('mouseover', function (event, d) {
+                    d3.select(this).attr('opacity', 1).attr('fill', modernChartTheme.primary);
+                    showTooltip(event, [[xField, d[xField]], [yField, d[yField]], ...(colorField ? [[colorField, d[colorField]]] : [])]);
+                })
+                .on('mousemove', function (event, d) { showTooltip(event, [[xField, d[xField]], [yField, d[yField]]]); })
+                .on('mouseout', function (event, d) {
+                    d3.select(this).attr('opacity', 0.9).attr('fill', colorField ? color(d[colorField]) : modernChartTheme.secondary);
+                    hideTooltip();
+                });
+        }
+
+        function renderLineChart(data, xField, yField) {
+            const rows = data.filter(d => Number.isFinite(+d[yField]));
+            const { plot, svg, width, height } = createChartSurface(
+                'line',
+                `${yField} 趋势`,
+                Number.isFinite(+rows[0]?.[xField]) ? `以 ${xField} 作为连续横轴。` : `以记录顺序展示 ${yField} 的变化。`
+            );
+            const hasNumericX = rows.length > 0 && rows.every(d => Number.isFinite(+d[xField]));
+            const x = hasNumericX
+                ? d3.scaleLinear().domain(paddedExtent(numericValues(rows, xField))).range([0, width])
+                : d3.scaleLinear().domain([0, Math.max(rows.length - 1, 1)]).range([0, width]);
+            const y = d3.scaleLinear().domain(paddedExtent(numericValues(rows, yField))).range([height, 0]).nice();
+
+            const defs = svg.append('defs');
+            const gradient = defs.append('linearGradient').attr('id', 'line-area-gradient').attr('x1', '0').attr('x2', '0').attr('y1', '0').attr('y2', '1');
+            gradient.append('stop').attr('offset', '0%').attr('stop-color', modernChartTheme.primary).attr('stop-opacity', 0.22);
+            gradient.append('stop').attr('offset', '100%').attr('stop-color', modernChartTheme.primary).attr('stop-opacity', 0);
+
+            addYAxisGrid(plot, y, width);
+            styleAxis(plot.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x).ticks(8)));
+            styleAxis(plot.append('g').call(d3.axisLeft(y).ticks(6)));
+            labelAxes(plot, width, height, hasNumericX ? xField : '记录序号', yField);
+
+            const xAccessor = (d, i) => hasNumericX ? x(+d[xField]) : x(i);
+            const line = d3.line().x(xAccessor).y(d => y(+d[yField])).curve(d3.curveMonotoneX);
+            const area = d3.area().x(xAccessor).y0(height).y1(d => y(+d[yField])).curve(d3.curveMonotoneX);
+
+            plot.append('path').datum(rows).attr('fill', 'url(#line-area-gradient)').attr('d', area);
+            plot.append('path').datum(rows).attr('fill', 'none').attr('stroke', modernChartTheme.primary).attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('d', line);
+            plot.selectAll('.line-point')
+                .data(rows)
+                .enter()
+                .append('circle')
+                .attr('class', 'line-point')
+                .attr('cx', xAccessor)
+                .attr('cy', d => y(+d[yField]))
+                .attr('r', 4)
+                .attr('fill', '#fff')
+                .attr('stroke', modernChartTheme.primary)
+                .attr('stroke-width', 2)
+                .on('mouseover', function (event, d) {
+                    d3.select(this).attr('r', 6);
+                    showTooltip(event, [[hasNumericX ? xField : '记录', hasNumericX ? d[xField] : rows.indexOf(d) + 1], [yField, d[yField]]]);
+                })
+                .on('mouseout', function () {
+                    d3.select(this).attr('r', 4);
+                    hideTooltip();
+                });
+        }
+
+        function renderBoxPlotChart(data, xField, yField) {
+            const groupedData = d3.groups(data.filter(d => Number.isFinite(+d[yField])), d => d[xField]).slice(0, 30);
+            const boxData = groupedData.map(([key, values]) => {
+                const sorted = values.map(d => +d[yField]).sort(d3.ascending);
+                return {
+                    key,
+                    min: d3.min(sorted),
+                    q1: d3.quantile(sorted, 0.25),
+                    median: d3.quantile(sorted, 0.5),
+                    q3: d3.quantile(sorted, 0.75),
+                    max: d3.max(sorted)
+                };
+            });
+            const { plot, width, height } = createChartSurface('boxplot', `${yField} 分布`, `按 ${xField} 分组展示五数概括。`);
+            const x = d3.scaleBand().domain(boxData.map(d => d.key)).range([0, width]).padding(0.36);
+            const y = d3.scaleLinear().domain(paddedExtent(boxData.flatMap(d => [d.min, d.max]))).range([height, 0]).nice();
+
+            addYAxisGrid(plot, y, width);
+            styleAxis(plot.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x)));
+            styleAxis(plot.append('g').call(d3.axisLeft(y).ticks(6)));
+            labelAxes(plot, width, height, xField, yField);
+
+            const groups = plot.selectAll('.box-group').data(boxData).enter().append('g').attr('class', 'box-group');
+            groups.append('line').attr('x1', d => x(d.key) + x.bandwidth() / 2).attr('x2', d => x(d.key) + x.bandwidth() / 2).attr('y1', d => y(d.min)).attr('y2', d => y(d.max)).attr('stroke', modernChartTheme.primary).attr('stroke-width', 2);
+            groups.append('rect').attr('x', d => x(d.key)).attr('y', d => y(d.q3)).attr('width', x.bandwidth()).attr('height', d => Math.max(2, y(d.q1) - y(d.q3))).attr('rx', 6).attr('fill', '#dbeafe').attr('stroke', modernChartTheme.primary).attr('stroke-width', 2);
+            groups.append('line').attr('x1', d => x(d.key)).attr('x2', d => x(d.key) + x.bandwidth()).attr('y1', d => y(d.median)).attr('y2', d => y(d.median)).attr('stroke', modernChartTheme.danger).attr('stroke-width', 2.5);
+            groups.on('mouseover', function (event, d) {
+                showTooltip(event, [['分组', d.key], ['最小值', d.min], ['Q1', d.q1], ['中位数', d.median], ['Q3', d.q3], ['最大值', d.max]]);
+            }).on('mouseout', hideTooltip);
+        }
+
+        function renderPixelVisualization(data, dimensions) {
+            const activeDimensions = dimensions.filter(Boolean);
+            const chart = document.getElementById('chart');
+            chart.innerHTML = `
+                <div class="tooltip" id="tooltip"></div>
+                <div class="chart-heading">
+                    <div>
+                        <strong>像素矩阵</strong>
+                        <span>以颜色深浅呈现字段值，适合快速查看局部模式。</span>
+                    </div>
+                    <div class="chart-badge">像素图</div>
+                </div>
+                <div class="pixel-grid-wrap"></div>
+            `;
+            const wrap = chart.querySelector('.pixel-grid-wrap');
+            activeDimensions.forEach(dimension => {
+                const values = numericValues(data, dimension);
+                const min = d3.min(values) ?? 0;
+                const max = d3.max(values) ?? 1;
+                const panel = document.createElement('div');
+                panel.className = 'pixel-panel';
+                panel.innerHTML = `<strong>${dimension}</strong><div class="pixel-grid"></div>`;
+                const grid = panel.querySelector('.pixel-grid');
+                data.slice(0, 160).forEach(row => {
+                    const value = Number(row[dimension]);
+                    const intensity = Number.isFinite(value) && max !== min ? (value - min) / (max - min) : 0.5;
+                    const cell = document.createElement('span');
+                    cell.style.background = d3.interpolateYlGnBu(intensity);
+                    cell.title = `${dimension}: ${row[dimension]}`;
+                    grid.appendChild(cell);
+                });
+                wrap.appendChild(panel);
+            });
+        }
+
+        function populateDataTable(data, xField, yField, colorField, sizeField, opacityField) {
+            const tableBody = document.querySelector("#data-table tbody");
+            if (!tableBody) {
+                return;
+            }
+            tableBody.innerHTML = '';
+
+            data.forEach((d, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>${d[xField]}</td>
+                    <td>${d[yField]}</td>
+                    <td>${colorField ? d[colorField] : '-'}</td>
+                    <td>${sizeField ? d[sizeField] : '-'}</td>
+                    <td>${opacityField ? d[opacityField] : '-'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function exportChart() {
+            const svg = document.querySelector("#chart svg");
+            if (!svg) {
+                showChartStatus('当前没有可导出的 SVG 图表，请先生成散点图、条形图、折线图或箱线图。', 'error');
+                return;
+            }
+            const serializer = new XMLSerializer();
+            const source = serializer.serializeToString(svg);
+
+            const img = new Image();
+            const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                canvas.width = svg.clientWidth;
+                canvas.height = svg.clientHeight;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+
+                URL.revokeObjectURL(url);
+                const imgURL = canvas.toDataURL("image/png");
+
+                const a = document.createElement("a");
+                a.href = imgURL;
+                a.download = "chart.png";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+            img.src = url;
+        }
+
+        function saveCurrentChartFavorite() {
+            if (!hasRequiredChartFields()) {
+                showChartStatus('请先完成图表字段配置，再收藏当前分析视图。', 'error');
+                return;
+            }
+            const title = `${chartTypeLabel[chartType] || '图表'}：${dropData.y || dropData.x} vs ${dropData.x || '字段'}`;
+            fetch('/api/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    kind: 'chart',
+                    title,
+                    description: `统计分析图表配置：X=${dropData.x || '-'}，Y=${dropData.y || '-'}，颜色=${dropData.color || '-'}`,
+                    payload: {
+                        page: 'statistical-analysis.html',
+                        chartType,
+                        dropData
+                    }
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showChartStatus('当前图表配置已加入收藏夹。', 'success');
+                    } else {
+                        showChartStatus(data.message || '收藏失败，请稍后重试。', 'error');
+                    }
+                })
+                .catch(() => showChartStatus('收藏失败，请稍后重试。', 'error'));
+        }
+
+        // 页面加载时默认显示可视化版面
+        window.onload = function () {
+            setDefaultTab(); // 设置默认版面
+            loadFieldMetadata();
+        };
+
+        function setDefaultTab() {
+            // 设置默认显示的版块为可视化版面
+            showTab('visualization');
+        }
+
+        function showTab(tabId) {
+            // 获取所有的 tab-content
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            // 隐藏所有 tab 内容
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 移除所有按钮的 active 样式
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            // 显示选中的 tab
+            const targetTab = document.getElementById(tabId);
+            if (!targetTab) {
+                return;
+            }
+            targetTab.classList.add('active');
+            // 给选中的按钮添加 active 样式
+            const button = document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`);
+            if (button) {
+                button.classList.add('active');
+            }
+            // 如果是数据版面，加载数据
+            if (tabId === "data-display") {
+                loadData();
+                // };
+
+            }
+        }
+
+        // 加载数据并渲染表格
+        function loadData() {
+            // 获取数据展示容器
+            const dataContainer = document.getElementById('data-container');
+                // window.onload = function() {
+                //     console.log("begin()");
+                //     loadData(); // 在页面完全加载后调用
+            dataContainer.innerHTML = '<p>正在加载数据...</p>'; // 显示加载提示
+
+            // 调用后端接口获取数据
+            fetch('/api/get-data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络错误或接口不可用');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 渲染数据表格
+                    // 使用虚拟滚动
+                    renderVirtualTable(data);
+                })
+                .catch(error => {
+                    dataContainer.innerHTML = '<p>数据加载失败，请稍后重试。</p>';
+                });
+        }
+
+        function renderVirtualTable(data, rowHeight = 30, topOffset = 100) {
+
+            const dataContainer = document.getElementById('data-container');
+            const topbar = document.getElementById('top-bar');
+            if (!dataContainer) {
+                return;
+            }
+
+            // 清空之前的内容
+            const containerHeight = Math.max(320, dataContainer.clientHeight || window.innerHeight - topOffset);
+            dataContainer.innerHTML = '';
+            dataContainer.style.position = 'relative';
+            dataContainer.style.height = `${containerHeight}px`;
+            dataContainer.style.overflow = 'auto';
+            // dataContainer.style.border = '1px solid #ccc';
+
+            if (!data || data.length === 0) {
+                dataContainer.innerHTML = '<p>没有数据可显示。</p>';
+                return;
+            }
+
+            const totalRows = data.length;
+            const visibleRows = Math.ceil(containerHeight / rowHeight);
+            const bufferRows = 5; // 缓冲区内的行数
+
+            // 顶部操作行
+            topbar.innerHTML = `<span>Showing 1 to ${visibleRows} of ${totalRows} results</span>`;
+
+             // 创建表格及表头
+            const table = document.createElement('table');
+            table.className = 'data-table';
+
+            // 添加表头
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+
+            Object.keys(data[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.innerText = key; // 使用字段名作为表头
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            table.appendChild(tbody);
+            dataContainer.appendChild(table);
+
+            // 创建 spacer 作为占位符
+            const spacer = document.createElement('div');
+            spacer.style.height = `${totalRows * rowHeight}px`; // 整体高度
+            dataContainer.appendChild(spacer);
+
+            // 渲染指定范围的行
+            function renderRows(scrollTop) {
+                const startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - bufferRows);
+                const endRow = Math.min(totalRows, startRow + visibleRows + 2 * bufferRows);
+
+                tbody.innerHTML = ''; // 清空现有行
+
+                for (let i = startRow; i < endRow; i++) {
+                    const tr = document.createElement('tr');
+                    Object.values(data[i]).forEach(value => {
+                        const td = document.createElement('td');
+                        td.innerText = typeof value === 'object' ? JSON.stringify(value) : value;
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                }
+
+                // 更新表格位置
+                tbody.style.transform = `translateY(${startRow * rowHeight}px)`;
+            
+                // 更新顶部提示
+                topbar.innerHTML = `<span>Showing ${startRow + 1} to ${Math.min(endRow, totalRows)} of ${totalRows} results</span>`;
+            }
+
+            // 滚动事件监听
+            dataContainer.onscroll = () => {
+                renderRows(dataContainer.scrollTop);
+            };
+
+            // 初始渲染
+            renderRows(0);
+        }
+
+
+
+
+        var settingsButton = document.getElementById('settings-button');
+        var modal = document.getElementById('settings-modal');
+        var closeBtn = document.querySelector('.close');
+
+        settingsButton.addEventListener('click', function() {
+            modal.style.display = 'block';
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        var languageSelect = document.getElementById('language-select');
+        languageSelect.addEventListener('change', function() {
+            var selectedLanguage = languageSelect.value;
+            if (selectedLanguage === 'zh') {
+                document.documentElement.lang = 'zh-CN';
+                alert('语言已切换至中文');
+            } else if (selectedLanguage === 'en') {
+                document.documentElement.lang = 'en';
+                alert('Language switched to English');
+            }
+        });
+
+        var themeSelect = document.getElementById('theme-select');
+        themeSelect.addEventListener('change', function() {
+            var selectedTheme = themeSelect.value;
+            if (selectedTheme === 'light') {
+                document.documentElement.style.setProperty('--sidebar-bg', '#273c75');
+                document.documentElement.style.setProperty('--content-bg', '#ffffff');
+                document.documentElement.style.setProperty('--button-bg', '#273c75');
+                document.documentElement.style.setProperty('--table-header-bg', '#273c75');
+                document.documentElement.style.setProperty('--text-color', '#ffffff');
+                document.documentElement.style.setProperty('--body-bg', '#f4f4f9');
+            } else if (selectedTheme === 'dark') {
+                document.documentElement.style.setProperty('--sidebar-bg', '#111');
+                document.documentElement.style.setProperty('--content-bg', '#444');
+                document.documentElement.style.setProperty('--button-bg', '#111');
+                document.documentElement.style.setProperty('--table-header-bg', '#111');
+                document.documentElement.style.setProperty('--text-color', '#ffffff');
+                document.documentElement.style.setProperty('--body-bg', '#333');
+            }
+        });
+
+        var colorSelect = document.getElementById('color-select');
+        colorSelect.addEventListener('input', function() {
+            var selectedColor = colorSelect.value;
+            document.documentElement.style.setProperty('--sidebar-bg', selectedColor);
+            document.documentElement.style.setProperty('--button-bg', selectedColor);
+            document.documentElement.style.setProperty('--table-header-bg', selectedColor);
+            document.documentElement.style.setProperty('--upload-button-bg', selectedColor);
+            document.documentElement.style.setProperty('--search-button-bg', selectedColor);
+        });
+
+        document.getElementById('clear-cache').addEventListener('click', function() {
+            alert('缓存已清理');
+        });
+
+        document.getElementById('restore-defaults').addEventListener('click', function() {
+            alert('已恢复默认设置');
+            languageSelect.value = 'zh';
+            themeSelect.value = 'light';
+            colorSelect.value = '#273c75';
+            document.documentElement.style.setProperty('--sidebar-bg', '#273c75');
+            document.documentElement.style.setProperty('--content-bg', '#ffffff');
+            document.documentElement.style.setProperty('--button-bg', '#273c75');
+            document.documentElement.style.setProperty('--table-header-bg', '#273c75');
+            document.documentElement.style.setProperty('--text-color', '#ffffff');
+            document.documentElement.style.setProperty('--body-bg', '#f4f4f9');
+            document.documentElement.style.setProperty('--upload-button-bg', '#273c75');
+            document.documentElement.style.setProperty('--search-button-bg', '#273c75');
+        });
+
+        document.getElementById('view-account').addEventListener('click', function() {
+            alert('账号管理页面正在开发中...');
+        });
+
+        document.getElementById('logout').addEventListener('click', function() {
+            alert('您已成功退出登录');
+        });
+
+        document.getElementById('view-system-info').addEventListener('click', function() {
+            alert('系统版本: 1.0.0\n更新日志:\n- 添加新功能\n- 修复已知问题');
+        });
+
+    </script>
+</body>
+
+</html>

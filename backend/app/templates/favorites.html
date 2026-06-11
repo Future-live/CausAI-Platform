@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收藏夹</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <style>
+        .favorites-page {
+            flex: 1;
+            padding: 20px;
+            background: #f6f8fc;
+            overflow: auto;
+        }
+
+        .compact-sidebar {
+            justify-content: flex-start;
+            gap: 4px;
+        }
+
+        .compact-sidebar .user-info {
+            margin-top: auto;
+        }
+
+        .favorites-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-left: 4px solid #273c75;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(39, 60, 117, 0.08);
+        }
+
+        .favorites-hero h1 {
+            margin: 0;
+            color: #1f2a44;
+            font-size: 26px;
+            letter-spacing: 0;
+        }
+
+        .favorites-hero p {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .favorites-toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .favorites-toolbar button,
+        .favorite-card button {
+            border: none;
+            border-radius: 6px;
+            padding: 9px 13px;
+            color: #fff;
+            background: #273c75;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .favorites-toolbar button.secondary,
+        .favorite-card button.secondary {
+            color: #273c75;
+            background: #eef3ff;
+            border: 1px solid #d7e0f1;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .favorite-card {
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(39, 60, 117, 0.06);
+        }
+
+        .favorite-card header {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .favorite-icon {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            color: #fff;
+            background: linear-gradient(135deg, #273c75, #4cbfff);
+            flex: 0 0 auto;
+        }
+
+        .favorite-card h3 {
+            margin: 0;
+            color: #22304a;
+            font-size: 16px;
+            line-height: 1.25;
+        }
+
+        .favorite-card p {
+            margin: 0;
+            color: #66758c;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .favorite-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: auto;
+            color: #718096;
+            font-size: 12px;
+        }
+
+        .favorite-meta span {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #f3f6fb;
+        }
+
+        .favorite-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .favorites-empty {
+            min-height: 360px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: #64748b;
+            border: 1px dashed #c8d3e3;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .favorites-empty i {
+            color: #273c75;
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar compact-sidebar">
+        <a href="index.html"><i class="fas fa-home"></i><span>主页</span></a>
+        <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+        <a href="data-preparation.html"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+        <a href="statistical-analysis.html"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+        <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+        <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+        <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
+        <div class="user-info" onclick="location.href='profile.html'">
+            <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+            <span>{{ user.username }}</span>
+        </div>
+    </div>
+    <main class="favorites-page">
+        <section class="favorites-hero">
+            <div>
+                <h1>收藏夹</h1>
+                <p>集中管理你保存的图表配置、语义分析结果和关键工作视图。</p>
+            </div>
+            <div class="favorites-toolbar">
+                <button onclick="location.href='statistical-analysis.html'"><i class="fas fa-chart-line"></i> 继续分析</button>
+                <button class="secondary" onclick="location.href='big-model-analysis.html'"><i class="fas fa-database"></i> 语义分析</button>
+            </div>
+        </section>
+        <section id="favorites-content" class="favorites-grid"></section>
+    </main>
+</div>
+<script>
+    const kindConfig = {
+        chart: { icon: 'fa-chart-line', label: '统计图表', url: 'statistical-analysis.html' },
+        semantic: { icon: 'fa-project-diagram', label: '语义因果', url: 'big-model-analysis.html' },
+        note: { icon: 'fa-sticky-note', label: '记录', url: 'index.html' }
+    };
+
+    function formatTime(value) {
+        if (!value) return '-';
+        return new Date(value).toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function renderFavorites(items) {
+        const container = document.getElementById('favorites-content');
+        if (!items.length) {
+            container.className = 'favorites-empty';
+            container.innerHTML = `
+                <div>
+                    <i class="fas fa-star"></i>
+                    <h2>还没有收藏内容</h2>
+                    <p>在统计分析页收藏图表配置，或在语义因果页收藏分析结果。</p>
+                </div>
+            `;
+            return;
+        }
+        container.className = 'favorites-grid';
+        container.innerHTML = items.map(item => {
+            const config = kindConfig[item.kind] || kindConfig.note;
+            return `
+                <article class="favorite-card" data-id="${item.id}">
+                    <header>
+                        <div class="favorite-icon"><i class="fas ${config.icon}"></i></div>
+                        <div>
+                            <h3>${item.title}</h3>
+                            <p>${item.description || '无描述'}</p>
+                        </div>
+                    </header>
+                    <div class="favorite-meta">
+                        <span>${config.label}</span>
+                        <span>${formatTime(item.created_at)}</span>
+                    </div>
+                    <div class="favorite-actions">
+                        <button class="secondary" onclick="location.href='${config.url}'">打开</button>
+                        <button onclick="deleteFavorite('${item.id}')">删除</button>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function loadFavorites() {
+        const container = document.getElementById('favorites-content');
+        container.className = 'favorites-empty';
+        container.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i><p>正在加载收藏...</p></div>';
+        fetch('/api/favorites')
+            .then(response => response.json())
+            .then(renderFavorites)
+            .catch(() => {
+                container.innerHTML = '<div><i class="fas fa-exclamation-circle"></i><p>收藏加载失败，请稍后重试。</p></div>';
+            });
+    }
+
+    function deleteFavorite(id) {
+        if (!confirm('确定删除这条收藏吗？')) {
+            return;
+        }
+        fetch(`/api/favorites/${id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadFavorites();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(() => alert('删除失败，请稍后重试'));
+    }
+
+    loadFavorites();
+</script>
+</body>
+</html>

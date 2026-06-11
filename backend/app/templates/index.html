@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <style>
+        .index_content {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* 添加相对定位用于背景图 */
+        }
+
+        .index_content h1 {
+            font-family: 'Arial', sans-serif;
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #3498db, #8e44ad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background-color: rgba(52, 152, 219, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1.5s ease-out;
+            z-index: 2; /* 保证标题在背景图上层 */
+        }
+
+        .index_content h1 i {
+            font-size: 40px;
+            color: #3498db;
+        }
+
+        .index_content .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('static/images/home-background.png'); /* 替换为你的背景图片路径 */
+            background-size: cover;
+            background-position: center;
+            opacity: 0.2; /* 调整透明度 */
+            z-index: 1; /* 背景图层级较低 */
+        }
+
+        .announcement-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .announcement {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .announcement h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: #34495e;
+        }
+
+        .announcement p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="menu-logo">
+                <!-- 第一个SVG图标 -->
+                <svg id="icon-1" width="29" height="30" viewBox="0 0 60 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32.7559 8.84226C32.7559 5.86885 36.3719 4.40339 38.442 6.53787L57.5161 26.2056C58.7723 27.5009 59.4748 29.2344 59.4748 31.0388V53.8041C59.4748 56.7775 55.8588 58.243 53.7887 56.1085L34.7146 36.4407C33.4584 35.1454 32.7559 33.4119 32.7559 31.6075V8.84226Z" fill="#FF9500"/>
+                    <path d="M16.1973 8.19578C16.1973 5.22237 19.8133 3.75691 21.8834 5.89139L40.676 25.2689C42.1127 26.7503 42.9162 28.733 42.9162 30.7966V53.1576C42.9162 56.131 39.3002 57.5965 37.2301 55.462L18.156 35.7942C16.8998 34.4989 16.1973 32.7654 16.1973 30.9611V8.19578Z" fill="#4CBFFF"/>
+                    <path d="M0.193359 8.84226C0.193359 5.86885 3.80941 4.40339 5.87947 6.53787L24.9536 26.2056C26.2098 27.5009 26.9123 29.2344 26.9123 31.0388V53.8041C26.9123 56.7775 23.2963 58.243 21.2262 56.1085L2.15209 36.4407C0.895891 35.1454 0.193359 33.4119 0.193359 31.6075V8.84226Z" fill="white"/>
+                </svg>
+                <!-- 第二个SVG图标 -->
+                <svg id="icon-2" width="58" height="13" viewBox="0 0 116 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.7296 25.9745C8.14072 25.9745 5.35405 24.8451 3.36961 22.5862C1.40628 20.3273 0.424609 17.1817 0.424609 13.1495C0.424609 9.15951 1.39572 6.02451 3.33794 3.74451C5.28017 1.46451 8.06683 0.324511 11.6979 0.324511C13.8724 0.324511 15.7302 0.736178 17.2713 1.55951C18.8124 2.36173 20.0157 3.48062 20.8813 4.91618C21.7468 6.35173 22.2535 7.9984 22.4013 9.85618H17.1129C16.9441 8.12507 16.3846 6.77396 15.4346 5.80284C14.4846 4.81062 13.2496 4.31451 11.7296 4.31451C9.8085 4.31451 8.36239 5.08507 7.39128 6.62618C6.42017 8.16729 5.93461 10.3523 5.93461 13.1812C5.93461 16.1156 6.43072 18.3217 7.42294 19.7995C8.43628 21.2562 9.86128 21.9845 11.6979 21.9845C13.2813 21.9845 14.5374 21.4778 15.4663 20.4645C16.4163 19.4512 16.9652 18.1106 17.1129 16.4428H22.4013C22.2535 18.3006 21.7468 19.9473 20.8813 21.3828C20.0157 22.8184 18.8124 23.9478 17.2713 24.7712C15.7513 25.5734 13.9041 25.9745 11.7296 25.9745ZM32.0279 25.8795C30.2546 25.8795 28.7979 25.4573 27.6579 24.6128C26.5179 23.7473 25.6735 22.5651 25.1246 21.0662C24.5757 19.5673 24.3013 17.8678 24.3013 15.9678C24.3013 14.0045 24.5757 12.284 25.1246 10.8062C25.6946 9.3284 26.5496 8.17784 27.6896 7.35451C28.8296 6.53118 30.2652 6.11951 31.9963 6.11951C33.3263 6.11951 34.4135 6.3834 35.2579 6.91118C36.1235 7.41784 36.7779 8.10396 37.2213 8.96951H37.9813V6.49951H42.7313V25.4995H37.9813V23.0295H37.2213C36.7779 23.8317 36.1341 24.5073 35.2896 25.0562C34.4452 25.6051 33.3579 25.8795 32.0279 25.8795ZM33.3579 22.2695C34.6457 22.2695 35.6696 21.7101 36.4296 20.5912C37.2107 19.4512 37.6013 17.9206 37.6013 15.9995C37.6013 14.0573 37.2107 12.5267 36.4296 11.4078C35.6696 10.289 34.6457 9.72951 33.3579 9.72951C32.1968 9.72951 31.2785 10.2573 30.6029 11.3128C29.9485 12.3473 29.6213 13.9095 29.6213 15.9995C29.6213 18.0895 29.9485 19.6623 30.6029 20.7178C31.2785 21.7523 32.1968 22.2695 33.3579 22.2695ZM53.5687 25.9745C51.4576 25.9745 49.8637 25.3095 48.787 23.9795C47.7104 22.6495 47.172 20.8445 47.172 18.5645V6.49951H52.302V17.7095C52.302 18.9973 52.5343 20.0001 52.9987 20.7178C53.4631 21.4356 54.2126 21.7945 55.247 21.7945C56.4926 21.7945 57.4531 21.309 58.1287 20.3378C58.8043 19.3667 59.142 18.174 59.142 16.7595V6.49951H64.272V25.4995H59.6487V22.6495H58.8887C58.572 23.5995 57.9915 24.3912 57.147 25.0245C56.3026 25.6578 55.1098 25.9745 53.5687 25.9745ZM76.0421 25.9745C73.931 25.9745 72.2421 25.6473 70.9755 24.9928C69.7299 24.3173 68.8116 23.4728 68.2205 22.4595C67.6505 21.4462 67.3232 20.4328 67.2388 19.4195H72.1155C72.221 19.9684 72.4427 20.4751 72.7805 20.9395C73.1394 21.3828 73.6038 21.7312 74.1738 21.9845C74.7649 22.2378 75.4721 22.3645 76.2955 22.3645C77.3088 22.3645 78.0371 22.1956 78.4805 21.8578C78.9238 21.499 79.1455 21.0451 79.1455 20.4962C79.1455 19.9895 78.9344 19.5673 78.5121 19.2295C78.111 18.8706 77.446 18.5434 76.5171 18.2478L74.2371 17.4878C73.1394 17.1078 72.126 16.6962 71.1971 16.2528C70.2682 15.7884 69.5188 15.1973 68.9488 14.4795C68.3999 13.7617 68.1255 12.8328 68.1255 11.6928C68.1255 10.004 68.7694 8.64229 70.0571 7.60785C71.3449 6.55229 73.171 6.02451 75.5355 6.02451C77.2455 6.02451 78.6388 6.2884 79.7155 6.81618C80.8132 7.34396 81.6366 8.05118 82.1855 8.93784C82.7344 9.8034 83.051 10.764 83.1355 11.8195H78.4488C78.3432 11.0595 78.0266 10.479 77.4988 10.0778C76.971 9.65562 76.2532 9.44451 75.3455 9.44451C74.5221 9.44451 73.8994 9.60284 73.4771 9.91951C73.076 10.2362 72.8755 10.669 72.8755 11.2178C72.8755 11.7667 73.0971 12.2206 73.5405 12.5795C73.9838 12.9384 74.6594 13.2656 75.5671 13.5612L77.8471 14.2895C78.9449 14.6273 79.9477 15.0284 80.8555 15.4928C81.7844 15.9362 82.5232 16.5273 83.0721 17.2662C83.621 17.984 83.8955 18.9234 83.8955 20.0845C83.8955 21.8578 83.2199 23.2828 81.8688 24.3595C80.5388 25.4362 78.5966 25.9745 76.0421 25.9745ZM84.2631 25.4995V25.3095L91.7048 0.79951H100.033L107.506 25.3095V25.4995H102.06L96.0748 4.91618H95.3148L89.2664 25.4995H84.2631ZM90.4381 19.3245L91.5464 15.3345H99.8431L100.951 19.3245H90.4381ZM110.166 25.4995V0.79951H115.486V25.4995H110.166Z" fill="white"/>
+                </svg>
+            </div>
+            <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+            <a href="data-preparation.html" class="restricted"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+            <a href="statistical-analysis.html" class="restricted"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+            <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+            <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+            <a href="favorites.html" class="restricted"><i class="fas fa-star"></i><span>收藏夹</span></a>
+            <div class="user-info" onclick="toggleDropdown()" onmouseleave="hideDropdown()">
+                <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+                <span>{{ session.username if session.username else '用户' }}</span>
+                <div class="user-dropdown">
+                    <a href="profile.html">个人信息</a>
+                    <a href="/logout">退出系统</a>
+                </div>
+            </div>
+        </div>
+        <div class="index_content">
+            <!-- 背景图片 -->
+            <div class="background-image"></div>
+            
+            <!-- 欢迎文本 -->
+            <h1><i class="fas fa-chart-line"></i> 欢迎来到causAI <i class="fas fa-database"></i></h1>
+
+            <!-- 系统公告 -->
+            <div class="announcement-container">
+                <div class="announcement">
+                    <h3>系统公告 1</h3>
+                    <p>系统将在2024年11月25日进行维护，期间将暂停服务。</p>
+                </div>
+                <div class="announcement">
+                    <h3>系统公告 2</h3>
+                    <p>新功能上线！支持因果图快速生成。</p>
+                </div>
+                <div class="announcement">
+                    <h3>系统公告 3</h3>
+                    <p>请及时备份您的重要数据，以免丢失。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var userDropdown = document.querySelector('.user-dropdown');
+        var isDataUploaded = false; // 状态变量，代表数据是否已上传
+
+        document.querySelectorAll('.restricted').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                if (!isDataUploaded) {
+                    event.preventDefault(); // 阻止链接的默认行为
+                    alert('请先上传文件！'); // 弹窗提示
+                }
+            });
+        });
+
+        fetch('/api/check-upload-status')
+            .then(response => response.json())
+            .then(data => {
+                isDataUploaded = Boolean(data.fileUploaded);
+            })
+            .catch(() => {
+                isDataUploaded = false;
+            });
+
+        document.addEventListener('click', function(event) {
+            var userButton = document.querySelector('.user-info');
+
+            if (!userButton.contains(event.target)) {
+                hideDropdown();
+            }
+        });
+
+        function toggleDropdown() {
+            var dropdown = document.querySelector('.user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function hideDropdown() {
+            var dropdown = document.querySelector('.user-dropdown');
+            dropdown.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>因果分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+    <style>
+
+            /* 卡片式布局样式 */
+        .card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+        }
+        /* 放大上传区卡片 */
+        .upload-card {
+            padding: 30px;
+        }
+
+        h2 {
+            color: #010000;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: none; /* 隐藏文件输入框 */
+        }
+        .upload-button {
+            background-color: #1e2b52;
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .upload-button:hover {
+            background-color: #2980b9;
+        }
+        .file-name {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+        .button_mid {
+            background-color: #1e2b52;
+            color: #ffffff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            border: none;
+            width: auto;
+            /* margin-top: 20px; */
+            display: block;
+            margin-left: 10px;
+            /* margin-right: auto; */
+        }
+        .button {
+            background-color: #1e2b52;
+            color: #ffffff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            border: none;
+            width: auto;
+            /* margin-top: 20px; */
+            display: block;
+            /* margin-left: auto; */
+            margin-right: auto;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .upload-section {
+            display: flex;
+            align-items: center;
+            /* padding: 15px; */
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 200px;
+        }
+
+        .upload-section label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+    /* 上传区样式 */
+        .upload-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;  /* 控制元素间距 */
+            /* gap: 150px; */
+            justify-content: center;
+            /* margin-bottom: 30px; */
+        }
+
+
+        .result-content {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+            /* 数据表容器 */
+        #csvTableContainer {
+            flex: 1;
+            max-width: 45%;
+            overflow-y: auto;
+            max-height: 250px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 40px; /* 增加内边距 */
+            background-color: #ffffff; /* 设置背景色，确保与表格分隔 */
+        }
+        /* 表格样式 */
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        .csv-table th, .csv-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .csv-table th {
+            background-color: #1e2b52;
+            color: #ffffff;
+        }
+
+        /* 图表容器 */
+        #graph-container {
+            flex: 1;
+            max-width: 50%;
+            height: 600px;
+            background-color: #ffffff;
+            border-radius: 8px;
+
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #progress-bar-container {
+            width: 100%;
+            height: 3%;
+            background-color: #f0f0f0;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #273c75;
+            transition: width 0.3s ease;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step[data-step="1"] {
+            display: block;
+        }
+
+        button.next-step-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button.next-step-btn:hover {
+            background-color: #45a049;
+        }
+
+
+        #graph-container {
+            height: 320px;
+        }
+
+        /* 容器样式：为所有步骤创建统一的容器 */
+        .main-content {
+            flex-grow: 1;               /* 主内容区域占据剩余空间 */
+            padding: 20px;              /* 主内容区域的内边距 */
+            overflow-y: auto;           /* 如果内容超出，添加滚动条 */
+        }
+
+        /* 整体容器样式 */
+        #variable-stats {
+            margin: 30px auto;
+            padding: 20px;
+            max-width: 1000px; /* 控制表格宽度 */
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
+
+        /* 标题样式 */
+        #variable-stats h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* 表格容器（使表格具备滚动功能） */
+        .stats-table-container {
+            max-height: 300px; /* 设置表格最大高度 */
+            overflow-y: auto;  /* 当内容超出时显示滚动条 */
+            margin-top: 10px;
+        }
+
+        /* 表格外观 */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* 表头样式 */
+        .stats-table thead {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+        }
+
+        /* 表头单元格 */
+        .stats-table th {
+            padding: 12px 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        /* 表体单元格 */
+        .stats-table td {
+            padding: 12px 15px;
+            font-size: 14px;
+            text-align: center; /* 使所有表体单元格内容居中 */
+            border-bottom: 1px solid #ddd; /* 添加边框，使行间隔更清晰 */
+        }
+
+        /* 勾选框单元格样式 */
+        .stats-table td input[type="checkbox"] {
+            width: 20px;   /* 设置勾选框宽度 */
+            height: 20px;  /* 设置勾选框高度 */
+            margin: 0 auto; /* 居中对齐 */
+            display: block; /* 确保勾选框是块级元素 */
+        }
+
+        /* 鼠标悬停时，改变勾选框背景颜色（增强可视性） */
+        .stats-table td input[type="checkbox"]:hover {
+            cursor: pointer; /* 改变鼠标为指针形状 */
+        }
+
+        /* 为奇偶行添加背景色，使表格看起来更清晰 */
+        .stats-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9; /* 偶数行背景 */
+        }
+
+        .stats-table tbody tr:nth-child(even) {
+            background-color: #f1f1f1; /* 奇数行背景 */
+        }
+
+        /* 鼠标悬停时高亮行 */
+        .stats-table tbody tr:hover {
+            background-color: #e0e0e0;
+        }
+
+        .algorithm-label {
+            white-space: nowrap;  /* 防止标签换行 */
+            margin: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+        .graph-placeholder_1 {
+            border: 2px dashed #aaa;
+            background-color: #f0f0f0f0;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <div class="menu-logo">
+            <!-- 第一个SVG图标 -->
+            <a href="index.html" class="logo">
+                <svg id="icon-1" width="29" height="30" viewBox="0 0 60 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32.7559 8.84226C32.7559 5.86885 36.3719 4.40339 38.442 6.53787L57.5161 26.2056C58.7723 27.5009 59.4748 29.2344 59.4748 31.0388V53.8041C59.4748 56.7775 55.8588 58.243 53.7887 56.1085L34.7146 36.4407C33.4584 35.1454 32.7559 33.4119 32.7559 31.6075V8.84226Z" fill="#FF9500"/>
+                    <path d="M16.1973 8.19578C16.1973 5.22237 19.8133 3.75691 21.8834 5.89139L40.676 25.2689C42.1127 26.7503 42.9162 28.733 42.9162 30.7966V53.1576C42.9162 56.131 39.3002 57.5965 37.2301 55.462L18.156 35.7942C16.8998 34.4989 16.1973 32.7654 16.1973 30.9611V8.19578Z" fill="#4CBFFF"/>
+                    <path d="M0.193359 8.84226C0.193359 5.86885 3.80941 4.40339 5.87947 6.53787L24.9536 26.2056C26.2098 27.5009 26.9123 29.2344 26.9123 31.0388V53.8041C26.9123 56.7775 23.2963 58.243 21.2262 56.1085L2.15209 36.4407C0.895891 35.1454 0.193359 33.4119 0.193359 31.6075V8.84226Z" fill="white"/>
+                </svg>
+            </a>
+            <!-- 第二个SVG图标 -->
+            <a href="index.html" class="logo">
+                <svg id="icon-2" width="58" height="13" viewBox="0 0 116 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.7296 25.9745C8.14072 25.9745 5.35405 24.8451 3.36961 22.5862C1.40628 20.3273 0.424609 17.1817 0.424609 13.1495C0.424609 9.15951 1.39572 6.02451 3.33794 3.74451C5.28017 1.46451 8.06683 0.324511 11.6979 0.324511C13.8724 0.324511 15.7302 0.736178 17.2713 1.55951C18.8124 2.36173 20.0157 3.48062 20.8813 4.91618C21.7468 6.35173 22.2535 7.9984 22.4013 9.85618H17.1129C16.9441 8.12507 16.3846 6.77396 15.4346 5.80284C14.4846 4.81062 13.2496 4.31451 11.7296 4.31451C9.8085 4.31451 8.36239 5.08507 7.39128 6.62618C6.42017 8.16729 5.93461 10.3523 5.93461 13.1812C5.93461 16.1156 6.43072 18.3217 7.42294 19.7995C8.43628 21.2562 9.86128 21.9845 11.6979 21.9845C13.2813 21.9845 14.5374 21.4778 15.4663 20.4645C16.4163 19.4512 16.9652 18.1106 17.1129 16.4428H22.4013C22.2535 18.3006 21.7468 19.9473 20.8813 21.3828C20.0157 22.8184 18.8124 23.9478 17.2713 24.7712C15.7513 25.5734 13.9041 25.9745 11.7296 25.9745ZM32.0279 25.8795C30.2546 25.8795 28.7979 25.4573 27.6579 24.6128C26.5179 23.7473 25.6735 22.5651 25.1246 21.0662C24.5757 19.5673 24.3013 17.8678 24.3013 15.9678C24.3013 14.0045 24.5757 12.284 25.1246 10.8062C25.6946 9.3284 26.5496 8.17784 27.6896 7.35451C28.8296 6.53118 30.2652 6.11951 31.9963 6.11951C33.3263 6.11951 34.4135 6.3834 35.2579 6.91118C36.1235 7.41784 36.7779 8.10396 37.2213 8.96951H37.9813V6.49951H42.7313V25.4995H37.9813V23.0295H37.2213C36.7779 23.8317 36.1341 24.5073 35.2896 25.0562C34.4452 25.6051 33.3579 25.8795 32.0279 25.8795ZM33.3579 22.2695C34.6457 22.2695 35.6696 21.7101 36.4296 20.5912C37.2107 19.4512 37.6013 17.9206 37.6013 15.9995C37.6013 14.0573 37.2107 12.5267 36.4296 11.4078C35.6696 10.289 34.6457 9.72951 33.3579 9.72951C32.1968 9.72951 31.2785 10.2573 30.6029 11.3128C29.9485 12.3473 29.6213 13.9095 29.6213 15.9995C29.6213 18.0895 29.9485 19.6623 30.6029 20.7178C31.2785 21.7523 32.1968 22.2695 33.3579 22.2695ZM53.5687 25.9745C51.4576 25.9745 49.8637 25.3095 48.787 23.9795C47.7104 22.6495 47.172 20.8445 47.172 18.5645V6.49951H52.302V17.7095C52.302 18.9973 52.5343 20.0001 52.9987 20.7178C53.4631 21.4356 54.2126 21.7945 55.247 21.7945C56.4926 21.7945 57.4531 21.309 58.1287 20.3378C58.8043 19.3667 59.142 18.174 59.142 16.7595V6.49951H64.272V25.4995H59.6487V22.6495H58.8887C58.572 23.5995 57.9915 24.3912 57.147 25.0245C56.3026 25.6578 55.1098 25.9745 53.5687 25.9745ZM76.0421 25.9745C73.931 25.9745 72.2421 25.6473 70.9755 24.9928C69.7299 24.3173 68.8116 23.4728 68.2205 22.4595C67.6505 21.4462 67.3232 20.4328 67.2388 19.4195H72.1155C72.221 19.9684 72.4427 20.4751 72.7805 20.9395C73.1394 21.3828 73.6038 21.7312 74.1738 21.9845C74.7649 22.2378 75.4721 22.3645 76.2955 22.3645C77.3088 22.3645 78.0371 22.1956 78.4805 21.8578C78.9238 21.499 79.1455 21.0451 79.1455 20.4962C79.1455 19.9895 78.9344 19.5673 78.5121 19.2295C78.111 18.8706 77.446 18.5434 76.5171 18.2478L74.2371 17.4878C73.1394 17.1078 72.126 16.6962 71.1971 16.2528C70.2682 15.7884 69.5188 15.1973 68.9488 14.4795C68.3999 13.7617 68.1255 12.8328 68.1255 11.6928C68.1255 10.004 68.7694 8.64229 70.0571 7.60785C71.3449 6.55229 73.171 6.02451 75.5355 6.02451C77.2455 6.02451 78.6388 6.2884 79.7155 6.81618C80.8132 7.34396 81.6366 8.05118 82.1855 8.93784C82.7344 9.8034 83.051 10.764 83.1355 11.8195H78.4488C78.3432 11.0595 78.0266 10.479 77.4988 10.0778C76.971 9.65562 76.2532 9.44451 75.3455 9.44451C74.5221 9.44451 73.8994 9.60284 73.4771 9.91951C73.076 10.2362 72.8755 10.669 72.8755 11.2178C72.8755 11.7667 73.0971 12.2206 73.5405 12.5795C73.9838 12.9384 74.6594 13.2656 75.5671 13.5612L77.8471 14.2895C78.9449 14.6273 79.9477 15.0284 80.8555 15.4928C81.7844 15.9362 82.5232 16.5273 83.0721 17.2662C83.621 17.984 83.8955 18.9234 83.8955 20.0845C83.8955 21.8578 83.2199 23.2828 81.8688 24.3595C80.5388 25.4362 78.5966 25.9745 76.0421 25.9745ZM84.2631 25.4995V25.3095L91.7048 0.79951H100.033L107.506 25.3095V25.4995H102.06L96.0748 4.91618H95.3148L89.2664 25.4995H84.2631ZM90.4381 19.3245L91.5464 15.3345H99.8431L100.951 19.3245H90.4381ZM110.166 25.4995V0.79951H115.486V25.4995H110.166Z" fill="white"/>
+                </svg>
+            </a>
+        </div>
+        <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+        <a href="data-preparation.html"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+        <a href="statistical-analysis.html"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+        <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+        <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+        <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
+        <a id="settings-button" href="javascript:void(0);"><i class="fas fa-cog"></i></a>
+    </div>
+    <div class="content">
+        <h1>数据驱动因果分析</h1>
+    
+        {% if error_message %}
+            <p class="error-message">{{ error_message }}</p>
+        {% endif %}
+        <!-- 进度条 -->
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+
+        <div class="main-content">
+        <!-- 1. 数据集配置 -->
+        <section id="step-1" class="step" data-step="1">
+            <h2>1. 数据集配置</h2>
+            <div id="variable-stats">
+                <div class="stats-table-container">
+                    <!-- 动态填充变量统计信息的表格 -->
+                </div>
+            </div>            
+            <button class="next-step-btn" onclick="nextStep()">下一步</button>
+        </section>
+
+        <!-- 第二部分：编辑函数依赖 -->
+        <section id="step-2" class="step" data-step="2" style="display: none;">
+            <h2>2. 编辑函数依赖</h2>
+
+            <!-- 用于显示图形的容器 -->
+            <div id="network" style="height: 400px;"></div>
+
+            <button class="next-step-btn" onclick="nextStep()">下一步</button>
+        </section>
+
+    
+        <!-- 3. 上传区和算法选择 -->
+        <section id="step-3" class="step" data-step="3" style="display: none;">
+        <div class="card">
+            <form enctype="multipart/form-data" id="uploadForm" onsubmit="startAnalysis(event)">
+                <div class="upload-row">
+                    <label for="algorithm" class="algorithm-label">选择算法:    </label>
+                    <select name="algorithm" id="algorithm" class="upload-button">
+                        <option value="pc">PC算法</option>
+                        <option value="gies">GIES算法</option>
+                    </select>
+                    <button type="submit" class="button_mid" id="analyzeButton">数据驱动分析</button>
+                    <button class="button" onclick="location.href='big-model-analysis.html'">语义引擎优化</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 分析结果卡片 -->
+        <div class="card" id="resultCard" >
+            <h2>分析结果</h2>
+            <div class="result-content">
+                <!-- 左侧数据表 -->
+                <div id="csvTableContainer">
+                    <table class="csv-table" id="csvTable">
+                        <thead>
+                            <tr id="tableHeaders"></tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+        
+                <!-- 右侧可视化图 -->
+                <div id="graph-container" class="graph-placeholder_1"></div>
+            </div>
+        </div>   
+
+    </section>    
+    </div>
+    </div>
+</div>
+
+<!-- 引入 Vis.js 样式和脚本 -->
+<link href="https://unpkg.com/vis-network/styles/vis-network.min.css" rel="stylesheet" />
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script>
+
+     // 从后端接口获取数据集
+     fetch('/api/get-statistics')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络错误或接口不可用');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 渲染数据表格（这里假设数据包含变量名和统计信息）
+                renderDataset(data);
+            })
+            .catch(error => {
+                console.error('数据加载错误:', error);
+                document.getElementById('dataset-config').innerHTML = '<p>数据加载失败，请稍后重试。</p>';
+            });
+
+            function renderDataset(data) {
+            const variableStats = document.getElementById('variable-stats');
+            const tableContainer = variableStats.querySelector('.stats-table-container');
+
+            // 创建表格
+            const table = document.createElement('table');
+            table.classList.add('stats-table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>选择</th> <!-- 新增选择列 -->
+                        <th>变量</th>
+                        <th>类型</th>
+                        <th>平均值</th>
+                        <th>标准差</th>
+                        <th>中位数</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body">
+                    <!-- 动态填充数据行 -->
+                </tbody>
+            `;
+
+            // 清除现有表格，避免重复渲染
+            tableContainer.innerHTML = '';
+
+            // 将新表格添加到容器中
+            tableContainer.appendChild(table);
+
+            // 遍历每个变量并填充数据
+            data.forEach(variable => {
+                // 创建表格行
+                const row = document.createElement('tr');
+
+                // 创建勾选框单元格，并设置勾选框事件
+                const checkboxCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.addEventListener('change', function () {
+                    // 勾选框状态变化时执行的操作
+                    updateCheckedVariables(variable.name, checkbox.checked);
+                });
+                checkboxCell.appendChild(checkbox);
+
+                // 创建其它单元格并添加变量统计信息
+                const nameCell = document.createElement('td');
+                nameCell.textContent = variable.name;
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = variable.type === 'categorical' ? '类别型' : '数值型';
+
+                const meanCell = document.createElement('td');
+                meanCell.textContent = (variable.mean || 0).toFixed(2);
+
+                const stdDevCell = document.createElement('td');
+                stdDevCell.textContent = (variable.stdDev || 0).toFixed(2);
+
+                const medianCell = document.createElement('td');
+                medianCell.textContent = (variable.median || 0).toFixed(2);
+
+                // 将所有单元格添加到行中
+                row.appendChild(checkboxCell);
+                row.appendChild(nameCell);
+                row.appendChild(typeCell);
+                row.appendChild(meanCell);
+                row.appendChild(stdDevCell);
+                row.appendChild(medianCell);
+
+                // 将行添加到表格中
+                table.querySelector('tbody').appendChild(row);
+
+            });
+        }
+
+        // 存储被勾选的变量
+        let checkedVariables = [];
+
+        // 更新被勾选的变量
+        function updateCheckedVariables(variableName, isChecked) {
+            if (isChecked) {
+                checkedVariables.push(variableName); // 添加勾选的变量
+            } else {
+                const index = checkedVariables.indexOf(variableName);
+                if (index > -1) {
+                    checkedVariables.splice(index, 1); // 移除未勾选的变量
+                }
+            }
+
+            console.log('被勾选的变量:', checkedVariables);
+        }
+    
+        let selectedNode = null;  // 用于存储第一个选中的节点
+        let waitingForSecondNode = false; // 标记是否等待用户选择第二个节点
+        let background_edge = [];
+        function createNetworkGraph() {
+            // 定义节点和边
+            let nodes = new vis.DataSet([]);
+            let edges = new vis.DataSet([]);
+            console.log(checkedVariables);
+
+            // 基于选中的变量生成节点
+            checkedVariables.forEach((variable, index) => {
+                nodes.add({ id: index, label: variable });
+                console.log(`添加节点：${variable}`);
+            });
+
+            // 创建网络图的配置
+            let container = document.getElementById('network');
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+            
+            let options = {
+                edges: {
+                    smooth: {
+                        type: 'continuous',  // 连续平滑边
+                    },
+                    arrows: { to: { enabled: true, scaleFactor: 0.8 } }, // 添加箭头
+                    color: { color: '#000000', highlight: '#ff0000' }
+                },
+                interaction: {
+                    dragNodes: true, // 支持拖拽节点
+                    dragView: true,  // 支持拖拽整个视图
+                    zoomView: true,  // 支持缩放
+                },
+                manipulation: {
+                    enabled: true,  // 启用交互模式
+                    addNode: false,  // 禁止添加节点
+                    addNode: false, // 禁止添加节点
+                    deleteNode: function (data, callback) {
+                        // 阻止节点被删除
+                        console.log(`阻止删除节点：${checkedVariables[data.nodes]}`);
+                        callback(false);  // 不删除节点
+                    },
+                    deleteEdge: true,  // 允许删除边
+                    
+                    addEdge: function(data, callback) {
+                        // 如果第一次选择节点
+                        if (!waitingForSecondNode) {
+                            // 记录第一个节点
+                            selectedNode = data.from;
+                            waitingForSecondNode = true;
+                            console.log(`已选择第一个节点：${checkedVariables[selectedNode]}`);
+                            callback();  // 继续等待第二个节点
+                        } else {
+                            // 确保第二个节点不等于第一个节点
+                            if (data.to === selectedNode) {
+                                console.log('不能添加自边，请选择不同的节点。');
+                                waitingForSecondNode = false; // 重新开始
+                            } else {
+                                // 确定从节点和到节点不同，可以添加边
+                                let fromNode = checkedVariables[selectedNode];
+                                let toNode = checkedVariables[data.to];
+                                console.log(`添加边：${fromNode} -> ${toNode}`);
+                                edges.add({
+                                    from: selectedNode,
+                                    to: data.to
+                                });
+                                background_edge.push({ from: fromNode, to: toNode });
+                                waitingForSecondNode = false;  // 重置状态
+                                selectedNode = null;  // 清空已选节点
+                                callback();
+                            }
+                        }
+                    }
+                }
+            };
+
+            // 创建网络图实例
+            let network = new vis.Network(container, data, options);
+        }
+
+
+    // 渲染 CSV 表格
+    function renderTable(csvData) {
+        const tableHeaders = document.getElementById("tableHeaders");
+        const tableBody = document.getElementById("tableBody");
+
+        tableHeaders.innerHTML = '';
+        tableBody.innerHTML = '';
+
+        if (csvData.length > 0) {
+            Object.keys(csvData[0]).forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = col;
+                tableHeaders.appendChild(th);
+            });
+        }
+
+        csvData.forEach(row => {
+            const tr = document.createElement("tr");
+            Object.values(row).forEach(value => {
+                const td = document.createElement("td");
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // 渲染三维图表
+    function renderGraph(rawNodes, rawEdges) {
+        // 将原始节点数据转换为 Vis.js 格式
+        const nodes = rawNodes.map((label, index) => ({
+            id: String(index), // 使用索引作为 id
+            label: label,      // 使用原始值作为节点标签
+        }));
+
+        // 构建节点标签到 ID 的映射表
+        const labelToId = nodes.reduce((map, node) => {
+            map[node.label] = node.id;
+            return map;
+        }, {});
+
+        // 将原始边数据的 source 和 target 转换为节点的 id
+        const edges = rawEdges.map(edge => ({
+            from: labelToId[edge.source], // 使用映射找到对应的 from id
+            to: labelToId[edge.target],   // 使用映射找到对应的 to id
+            arrows: {
+                to: { enabled: true, scaleFactor: 1.2 }, // 美化箭头
+            },
+            color: {
+                color: '#000000',      // 边默认颜色改为黑色
+                highlight: '#FF5733', // 高亮颜色
+                hover: '#2ECC71',     // 悬浮颜色
+            },
+            width: 2, // 边宽度
+        }));
+
+        console.log('Processed Nodes:', nodes);
+        console.log('Processed Edges:', edges);
+
+        // 配置 Vis.js 图的选项
+        const options = {
+            nodes: {
+                shape: 'dot', // 节点为圆形点
+                size: 15, // 节点大小
+                font: {
+                    size: 18,   // 标签字体大小
+                    color: '#2C3E50', // 标签颜色
+                    face: 'Arial',    // 字体样式
+                },
+                color: {
+                    background: '#3498DB', // 节点背景色
+                    border: '#2980B9',    // 节点边框色
+                    highlight: {
+                        background: '#1ABC9C', // 高亮背景色
+                        border: '#16A085',    // 高亮边框色
+                    },
+                    hover: {
+                        background: '#F1C40F', // 悬浮背景色
+                        border: '#F39C12',    // 悬浮边框色
+                    },
+                },
+                borderWidth: 2, // 节点边框宽度
+            },
+            edges: {
+                arrows: { to: { enabled: true, scaleFactor: 1.2 } }, // 美化箭头
+                color: {
+                    color: '#000000',      // 默认黑色边
+                    highlight: '#E74C3C', // 高亮红色边
+                    hover: '#8E44AD',     // 悬浮紫色边
+                },
+                smooth: {
+                    type: 'dynamic', // 动态平滑曲线
+                },
+                width: 2, // 边默认宽度
+            },
+            interaction: {
+                dragNodes: true, // 支持拖拽节点
+                zoomView: true,  // 支持缩放
+                dragView: true,  // 支持拖拽视图
+                hover: true,     // 节点悬浮显示
+            },
+            physics: {
+                enabled: true, // 启用物理引擎
+                stabilization: {
+                    iterations: 100, // 稳定布局迭代次数
+                },
+            },
+        };
+
+        // 渲染容器
+        const container = document.getElementById('graph-container');
+
+        // 创建图形数据
+        const data = {
+            nodes: new vis.DataSet(nodes),
+            edges: new vis.DataSet(edges),
+        };
+
+        // 初始化网络图
+        const network = new vis.Network(container, data, options);
+
+        // 调整布局
+        network.stabilize();
+    }
+    // 获取分析结果并显示
+    function fetchData() {
+        fetch('/get-csv-data')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received:", data);
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    renderTable(data.csv_data);
+                    renderGraph(data.nodes, data.edges);
+                    document.getElementById("resultCard").style.display = "block";
+                }
+            })
+            .catch(error => console.error("获取数据时出错:", error));
+    }
+
+    let intervalId;
+
+    // 启动分析过程
+    function startAnalysis(event) {
+        event.preventDefault();
+        console.log("开始分析流程");
+
+        const uploadButton = document.getElementById('analyzeButton');
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+
+        console.log("this is background_edge");
+        console.log(background_edge);
+        const formData = new FormData(document.getElementById('uploadForm'));
+
+        formData.append('background_edge', JSON.stringify(background_edge));
+        formData.append('sel_var', checkedVariables)
+
+
+        console.log("发送请求到 /causal-analysis.html");
+
+        fetch('/causal-analysis.html', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())  // 解析为 JSON 数据
+        .then(data => {
+            console.log("收到分析数据:", data);
+            fetchData()
+            resetButton()
+        })
+        .catch(error => {
+            console.error("启动分析时出错:", error);
+            resetButton();
+        });
+    }
+
+    // 检查分析状态
+    function checkAnalysisStatus() {
+        fetch('/check-analysis-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.completed) {
+                    clearInterval(intervalId);
+                    resetButton();
+                    fetchData();
+                }
+            })
+            .catch(error => {
+                console.error("检查分析状态时出错:", error);
+                clearInterval(intervalId);
+            });
+    }
+
+    // 恢复按钮到初始状态
+    function resetButton() {
+        const uploadButton = document.getElementById('analyzeButton');
+        uploadButton.disabled = false;
+        uploadButton.innerHTML = '<i class="fas fa-file-upload"></i> 上传并分析';
+    }
+
+    let currentStep = 1;
+    const totalSteps = 3;
+
+    function nextStep() {
+        console.log(document.querySelector(`#step-${currentStep}`));
+        // Hide current step
+        document.querySelector(`#step-${currentStep}`).style.display = 'none';
+        
+        // Increment step
+        currentStep++;
+        console.log(currentStep);
+        
+        // Show next step
+        if (currentStep <= totalSteps) {
+            document.querySelector(`#step-${currentStep}`).style.display = 'block';
+            updateProgressBar();
+            if(currentStep === 2)createNetworkGraph();
+        } 
+    }
+
+    function updateProgressBar(completed = false) {
+        const progress = (currentStep - 1) / (totalSteps-1) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+    }
+
+    // Initialize the progress bar
+    updateProgressBar();
+
+</script>
+
+</body>
+</html>

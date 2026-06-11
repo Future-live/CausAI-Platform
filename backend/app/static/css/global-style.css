@@ -1,0 +1,514 @@
+:root {
+    --sidebar-bg: #273c75; /* �����������ɫ */
+    --content-bg: #ffffff; /* ������������ɫ */
+    --button-bg: #273c75; /* ��ť������ɫ */
+    --table-header-bg: #273c75; /* ��ͷ������ɫ */
+    --text-color: #ffffff; /* �ı���ɫ */
+    --body-bg: #f4f4f9; /* ȫ�ֱ�����ɫ */
+    --upload-button-bg: #1e2b52; /* �½�������ť������ɫ */
+    --search-button-bg: #1e2b52; /* ������ť������ɫ */
+}
+
+/* ʹ��ȫ�ֱ��� */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: var(--body-bg);
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 95%;
+    height: 95%;
+    border: 1px solid #d3d3d3;
+    border-radius: 8px;
+    display: flex;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* �������ʽ */
+.sidebar {
+    position: relative;
+    width: 50px;
+    height: 100%;
+    background: var(--sidebar-bg);
+    padding: 10px;
+    color: var(--text-color);
+    border-right: 1px solid #bdc3c7;
+    transition: width 0.3s ease-in-out;
+    overflow: hidden;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* �����������ײ����� */
+}
+
+.sidebar:hover {
+    width: 200px;
+}
+
+.sidebar h2 {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.sidebar:hover h2 {
+    opacity: 1;
+}
+
+a {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.3s;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+a:hover {
+    background-color: #2980b9;
+    padding-left: 15px;
+}
+
+a i {
+    font-size: 20px;
+    width: 30px;
+}
+
+a span {
+    margin-left: 15px;
+    display: none;
+    transition: display 0.3s ease-in-out;
+}
+
+.sidebar:hover a span,
+.sidebar:hover .user-info span {
+    display: block;
+}
+
+/* LOGO 区域 */
+.menu-logo {
+    display: flex;
+    flex-direction: column; /* 图标和文字垂直排列 */
+    align-items: center; /* 水平方向居中 */
+    justify-content: center; /* 垂直方向居中 */
+    gap: 10px; /* 图标与文字的间距 */
+    transition: all 0.3s ease;
+}
+
+#icon-1 {
+    margin-top: 20px; /* 图标上方独立的间距 */
+}
+
+.menu-logo #icon-2 {
+    opacity: 0; /* 收起状态隐藏第二个图标和文字 */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(-10px); /* 向左偏移，制造动画效果 */
+}
+
+.sidebar:hover #icon-2{
+    opacity: 1; /* 展开时显示 */
+    transform: translateX(0); /* 恢复位置 */
+    margin-bottom: 20px;
+}
+
+/* ���ð�ť��ʽ */
+#settings-button {
+    margin-top: auto;
+    margin-bottom: 10px;
+    align-self: flex-start;
+    color: var(--text-color); /* ͳһͼ����ɫ */
+}
+
+#settings-button i {
+    font-size: 24px;
+}
+
+/* ������ʽ */
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--content-bg);
+    border: 1px solid #d3d3d3;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    /* ��ѡ */
+    padding-bottom: 50px;
+    overflow-y: auto;
+}
+
+.content h1 {
+    color: #2c3e50;
+    font-size: 30px;
+    align-items: flex-start; 
+    margin-bottom: 20px;
+    /* ��ѡ */
+    border-bottom: 2px solid #f4f4f9;
+    padding-bottom: 10px;
+}
+
+.content p {
+    color: #555;
+    font-size: 18px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.separator {
+    width: 100%;
+    height: 1px;
+    background-color: #bdc3c7;
+    margin: 10px 0;
+}
+
+button,
+.bots {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 10px 20px;
+    font-size: 15px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    /* margin-top: 10px; */
+}
+
+button:hover,
+.bots:hover {
+    transform: scale(1.05);
+}
+
+
+/* 搜索框样式 */
+input[type="text"] {
+    width: 80%; /* 宽度 */
+    padding: 10px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    border: 1px solid #ddd; /* 边框颜色 */
+    border-radius: 4px; /* 圆角 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+}
+
+input[type="text"]:focus {
+    border-color: #3498db; /* 聚焦边框蓝色 */
+    outline: none; /* 去除默认轮廓 */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); /* 蓝色光晕效果 */
+}
+
+
+.file-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.custom-file-upload {
+    background-color: var(--upload-button-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 10px 20px;
+    font-size: 14px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 50px;
+    margin-bottom: 10px;
+    position: absolute;
+    right: 20px;
+    top: 0;
+}
+
+.custom-file-upload:hover {
+    transform: scale(1.05);
+}
+
+
+.buttons {
+    position: absolute;
+    bottom: 100px; /* ����Լ5cm */
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.pagination button {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 10px 20px;
+    font-size: 13px;
+    margin: 0 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.pagination button:hover {
+    transform: scale(1.05);
+}
+
+.pagination button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+    text-align: center;
+}
+
+/* ������ʽ */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* ��͸������ */
+}
+
+.modal-content {
+    background-color: #ffffff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 15px; /* Բ��Ч�� */
+    width: 50%;
+    max-width: 600px; /* ������ */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* ��ӰЧ�� */
+    animation: slide-down 0.5s ease; /* �������� */
+}
+
+/* �������� */
+@keyframes slide-down {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-body {
+    margin-top: 20px;
+}
+
+.setting-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease; /* ��������Ч�� */
+}
+
+.setting-option:hover {
+    background-color: #f1f1f1; /* ��ͣЧ�� */
+}
+
+.setting-option label {
+    width: 150px; /* �������� */
+    margin-right: 10px;
+    text-align: right;
+    font-weight: bold; /* �Ӵ����� */
+}
+
+.setting-option select,
+.setting-option input[type="color"] {
+    padding: 5px;
+    width: 250px;
+    border: 1px solid #ccc; /* �߿�Ч�� */
+    border-radius: 4px;
+    transition: border-color 0.3s ease; /* �߿����Ч�� */
+}
+
+.setting-option select:focus,
+.setting-option input[type="color"]:focus {
+    border-color: #2980b9; /* �۽�Ч�� */
+}
+
+.setting-option button {
+    background-color: #1e2b52;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 10px 20px;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-right: 10px;
+}
+
+.setting-option button:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-top: auto; /* ���¾��� */
+    margin-bottom: 1cm; /* ����ײ�1cm */
+    cursor: pointer;
+    position: relative;
+}
+
+.user-info img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user-info span {
+    color: rgb(250, 248, 248); /* �޸�������ɫΪ��ɫ */
+    display: none; /* ��ʼ���� */
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: -100px; 
+    right: 0;
+    background: rgb(170, 177, 220);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 5px;
+    z-index: 1003;
+}
+
+.user-dropdown a {
+    text-decoration: none;
+    padding: 10px;
+    display: block;
+}
+
+.user-dropdown a:hover {
+    background-color: #273c75;
+}
+
+.modal-iframe {
+    display: none; 
+    position: fixed;
+    top: 50%;  
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    width: 80%;  
+    max-width: 600px; 
+    height: 70%; 
+    max-height: 500px;
+    border: 1px solid #ccc; 
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff; 
+    z-index: 1000;
+}
+
+.sidebar .logo {
+    all: unset;
+    display: inline-block;
+    cursor: pointer; /* 鼠标移到这里时显示为手型 */
+}
+
+/* Compact page headers. Keeps the old blue workbench style but removes oversized top spacing. */
+.container .content > h1,
+.container .content .header {
+    margin: 0 0 14px 0;
+    padding: 14px 18px;
+    background: #fbfcff;
+    border: 1px solid #e4e8f1;
+    border-left: 4px solid var(--button-bg);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(39, 60, 117, 0.08);
+}
+
+.container .content > h1,
+.container .content .header h1 {
+    color: #243247;
+    font-size: 25px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.content .header h1 {
+    margin: 0;
+}
+
+.content .button-bar {
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.content .button-bar .button,
+.content .button-bar button {
+    min-height: 42px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(39, 60, 117, 0.18);
+}
+
+.content .button-bar .button i {
+    font-size: 16px;
+}
+

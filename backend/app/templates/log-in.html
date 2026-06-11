@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Data Analysis System</title>
+    <style>
+        body {
+            font-family: "Avenir Next", "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* 隐藏溢出的视频 */
+            position: relative; /* 绝对定位其他元素所需 */
+        }
+
+        #video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 覆盖整个视口 */
+            z-index: -1; /* 确保视频位于其他内容的后面 */
+        }
+
+        /* 其他样式保持不变 */
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255,255,255,0.48);
+            border-radius: 14px;
+            box-shadow: 0 24px 60px rgba(13, 27, 54, 0.22);
+            padding: 34px;
+            width: 360px;
+            z-index: 1;
+            backdrop-filter: blur(14px);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #22304a;
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 0;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-form input[type="text"],
+        .login-form input[type="email"],
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 12px 13px;
+            margin-bottom: 14px;
+            border: 1px solid #d8e0ec;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333333;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.88);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .login-form input:focus {
+            border-color: #273c75;
+            box-shadow: 0 0 0 3px rgba(39, 60, 117, 0.12);
+        }
+
+        .login-form button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            background: linear-gradient(135deg, #273c75, #1e2b52);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 24px rgba(39, 60, 117, 0.24);
+        }
+
+        .login-form button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(39, 60, 117, 0.30);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .register-link a {
+            color: #273c75;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-msg {
+            color: #c0392b;
+            display: none;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .success-msg {
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="static/video/15.mp4" type="video/mp4">
+    </video>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Login</h2>
+        </div>
+        <form class="login-form" id="login-form">
+            <input type="text" name="username" placeholder="用户名" autocomplete="username" required>
+            <input type="password" name="password" placeholder="密码" autocomplete="current-password" required>
+            <button type="submit">登录</button>
+            <p class="error-msg" id="error-msg" style="display: none; color: red;"></p>
+            <p class="success-msg" id="success-msg" style="display: none; color: green;"></p>
+        </form>
+        
+        <div class="register-link">
+            <a href="#" id="show-register">没有账户？注册</a>
+        </div>
+        
+        <!-- 注册表单 -->
+        <form class="login-form" id="register-form" style="display: none;">
+            <input type="text" name="reg-username" placeholder="用户名" autocomplete="username" required>
+            <input type="email" name="reg-email" placeholder="邮箱（可选）" autocomplete="email">
+            <input type="password" name="reg-password" placeholder="密码" autocomplete="new-password" required>
+            <input type="password" name="reg-confirm-password" placeholder="确认密码" autocomplete="new-password" required>
+            <button type="submit">注册</button>
+            <p class="error-msg" id="reg-error-msg" style="display: none; color: red;"></p>
+            <p class="success-msg" id="reg-success-msg" style="display: none; color: green;"></p>
+        </form>
+        <div class="register-link" id="login-link" style="display: none;">
+            <a href="#" id="show-login">已有账户？登录</a>
+        </div>
+    </div>
+
+    <script>
+        // 登录表单处理
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const username = document.getElementsByName("username")[0].value;
+            const password = document.getElementsByName("password")[0].value;
+            const errorMsg = document.getElementById("error-msg");
+            const successMsg = document.getElementById("success-msg");
+            
+            // 隐藏之前的消息
+            errorMsg.style.display = "none";
+            successMsg.style.display = "none";
+            
+            // 发送登录请求
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMsg.textContent = data.message;
+                    if (data.auth_method === 'local') {
+                        successMsg.textContent += ' (本地认证)';
+                    }
+                    successMsg.style.display = "block";
+                    
+                    // 延迟跳转到主页
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1000);
+                } else {
+                    errorMsg.textContent = data.message;
+                    
+                    // 如果有本地账户提示，显示给用户
+                    if (data.local_accounts_hint) {
+                        errorMsg.innerHTML = data.message + '<br><small style="color: #666;">' + data.local_accounts_hint + '</small>';
+                    }
+                    
+                    errorMsg.style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorMsg.textContent = "登录请求失败，请稍后重试";
+                errorMsg.style.display = "block";
+            });
+        });
+        
+        // 注册表单处理
+        document.getElementById("register-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const username = document.getElementsByName("reg-username")[0].value;
+            const email = document.getElementsByName("reg-email")[0].value;
+            const password = document.getElementsByName("reg-password")[0].value;
+            const confirmPassword = document.getElementsByName("reg-confirm-password")[0].value;
+            const errorMsg = document.getElementById("reg-error-msg");
+            const successMsg = document.getElementById("reg-success-msg");
+            
+            // 隐藏之前的消息
+            errorMsg.style.display = "none";
+            successMsg.style.display = "none";
+            
+            // 验证密码确认
+            if (password !== confirmPassword) {
+                errorMsg.textContent = "两次输入的密码不一致";
+                errorMsg.style.display = "block";
+                return;
+            }
+            
+            // 发送注册请求
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMsg.textContent = data.message;
+                    successMsg.style.display = "block";
+                    
+                    // 清空表单
+                    document.getElementById("register-form").reset();
+                    
+                    // 延迟切换到登录表单
+                    setTimeout(() => {
+                        showLogin();
+                    }, 2000);
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorMsg.textContent = "注册请求失败，请稍后重试";
+                errorMsg.style.display = "block";
+            });
+        });
+        
+        // 显示注册表单
+        document.getElementById("show-register").addEventListener("click", function(event) {
+            event.preventDefault();
+            showRegister();
+        });
+        
+        // 显示登录表单
+        document.getElementById("show-login").addEventListener("click", function(event) {
+            event.preventDefault();
+            showLogin();
+        });
+        
+        function showRegister() {
+            document.getElementById("login-form").style.display = "none";
+            document.querySelector(".register-link").style.display = "none";
+            document.getElementById("register-form").style.display = "block";
+            document.getElementById("login-link").style.display = "block";
+            document.querySelector(".login-header h2").textContent = "注册";
+            
+            // 清空错误消息
+            document.getElementById("error-msg").style.display = "none";
+            document.getElementById("success-msg").style.display = "none";
+        }
+        
+        function showLogin() {
+            document.getElementById("register-form").style.display = "none";
+            document.getElementById("login-link").style.display = "none";
+            document.getElementById("login-form").style.display = "block";
+            document.querySelector(".register-link").style.display = "block";
+            document.querySelector(".login-header h2").textContent = "登录";
+            
+            // 清空错误消息
+            document.getElementById("reg-error-msg").style.display = "none";
+            document.getElementById("reg-success-msg").style.display = "none";
+        }
+    </script>
+
+    
+</body>
+
+</html>

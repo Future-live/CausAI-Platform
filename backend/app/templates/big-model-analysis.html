@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大模型因果分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+    <link href="https://unpkg.com/vis-network/styles/vis-network.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+         /* 新增加载动画样式 */
+         .graph-placeholder {
+            position: relative;  /* 添加相对定位 */
+            /* 原有其他样式保持不变 */
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(240, 240, 240, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .modal-body {
+            line-height: 1.6;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .analysis-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 5px;
+        }
+
+        .analysis-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .causal-data-preview {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* 左侧交互区域 */
+        .left-panel {
+            width: 50%;
+            height: 100%;
+            padding-right: 20px;
+            padding-left: 10px;
+            border-right: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* result-display1*/
+        #result-display1 {
+            position: relative;  /* 必须设置相对定位 */
+            min-height: 80px;    /* 最小高度保证加载层可见 */
+            height: auto;        /* 高度自适应内容 */
+            padding: 15px;       /* 内边距增加可读性 */
+            margin: 10px 0;      /* 外边距分隔元素 */
+            background: #f0f0f0;/* 浅灰色背景 */
+            border-radius: 8px;  /* 圆角效果 */
+            border: 1px solid #e0e0e0; /* 浅灰色边框 */
+            overflow: auto;      /* 内容溢出时显示滚动条 */
+        }
+
+        /* 结果文本样式 */
+        #result-display1 strong {
+            color: #2c3e50;      /* 深蓝色强调文字 */
+            font-size: 1.1em;
+        }
+
+        #result-display1 div {
+            line-height: 1.6;    /* 行高增加可读性 */
+            color: #4a4a4a;      /* 深灰色文字 */
+            font-size: 0.95em;
+            margin-top: 10px;
+        }
+
+        /* 加载层适配 */
+        #result-display1 .loading-overlay {
+            background: #f0f0f0; /* 与背景色一致的半透明层 */
+        }
+        /* 右侧布局 */
+        .right-panel {
+            width: 50%;
+            padding-left: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            height: 30vh;
+            position: relative;
+        }
+        .section_graph {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            height: 60vh;
+            position: relative;
+        }
+        /* .selection-box {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        } */
+        .selection-box {
+            grid-template-columns: 120px 1fr;  /* 固定标签宽度，内容自适应 */
+            gap: 15px;
+            align-items: center;
+            margin: 12px 0;
+            padding: 7px 20px;
+            /* background: rgba(255, 255, 255, 0.9); */
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* 悬停增强效果 */
+        .selection-box:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* 标签样式 */
+        .selection-box label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+        }
+
+        /* 输入/选择框样式 */
+        .selection-box input,
+        .selection-box select {
+            padding: 10px 14px;
+            width: 150px;
+            margin: 5px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: #f8f9fa;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+        }
+
+        /* 悬停状态 */
+        .selection-box input:hover,
+        .selection-box select:hover {
+            border-color: #bdbdbd;
+        }
+
+        /* 自定义下拉箭头 */
+        .selection-box select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23757575'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
+        .graph-placeholder {
+            border: 2px dashed #aaa;
+            background-color: #f0f0f0f0;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        .graph-placeholder_1 {
+            border: 2px dashed #aaa;
+            background-color: #f0f0f0f0;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .causal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* 调整标题样式 */
+        .causal-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+
+        /* 调整按钮样式 */
+        #generate {
+            margin-top: 20px;
+            margin-left: auto; /* 将按钮推到右侧 */
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        generate:hover{
+            transform: scale(1.05);
+        }
+
+        .left-panel,
+        .right-panel {
+            box-sizing: border-box;
+            padding: 14px;
+            background: #f6f8fc;
+        }
+
+        .left-panel h2 {
+            margin: 0 0 12px;
+            padding: 14px 16px;
+            color: #1f2a44;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-left: 4px solid #273c75;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(39, 60, 117, 0.06);
+            font-size: 22px;
+        }
+
+        .section,
+        .section_graph {
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(39, 60, 117, 0.07);
+        }
+
+        .section h3,
+        .section_graph h3 {
+            margin: 0 0 12px;
+            color: #22304a;
+            font-size: 17px;
+        }
+
+        .graph-placeholder,
+        .graph-placeholder_1 {
+            border: 1px dashed #c8d3e3;
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 30% 12%, rgba(76, 191, 255, 0.12), transparent 32%),
+                linear-gradient(180deg, #fbfdff 0%, #f4f7fc 100%);
+            color: #64748b;
+            overflow: hidden;
+        }
+
+        #result-display1 {
+            background: #f8fafc;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            color: #334155;
+        }
+
+        .selection-box {
+            display: grid;
+            grid-template-columns: 86px minmax(0, 1fr);
+            background: #f8fafc;
+            border: 1px solid #e1e8f3;
+            box-shadow: none;
+        }
+
+        .selection-box input,
+        .selection-box select {
+            width: 100%;
+            margin: 0;
+            border: 1px solid #d8e0ec;
+            background-color: #fff;
+        }
+
+        .left-panel button,
+        .right-panel button,
+        #generate {
+            position: static;
+            background: #273c75;
+            color: #fff;
+            border-radius: 6px;
+            border: none;
+            padding: 9px 14px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(39, 60, 117, 0.16);
+        }
+
+        .semantic-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 左侧交互面板 -->
+    <div class="sidebar">
+        <div class="menu-logo">
+            <!-- 第一个SVG图标 -->
+            <a href="index.html" class="logo">
+                <svg id="icon-1" width="29" height="30" viewBox="0 0 60 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32.7559 8.84226C32.7559 5.86885 36.3719 4.40339 38.442 6.53787L57.5161 26.2056C58.7723 27.5009 59.4748 29.2344 59.4748 31.0388V53.8041C59.4748 56.7775 55.8588 58.243 53.7887 56.1085L34.7146 36.4407C33.4584 35.1454 32.7559 33.4119 32.7559 31.6075V8.84226Z" fill="#FF9500"/>
+                    <path d="M16.1973 8.19578C16.1973 5.22237 19.8133 3.75691 21.8834 5.89139L40.676 25.2689C42.1127 26.7503 42.9162 28.733 42.9162 30.7966V53.1576C42.9162 56.131 39.3002 57.5965 37.2301 55.462L18.156 35.7942C16.8998 34.4989 16.1973 32.7654 16.1973 30.9611V8.19578Z" fill="#4CBFFF"/>
+                    <path d="M0.193359 8.84226C0.193359 5.86885 3.80941 4.40339 5.87947 6.53787L24.9536 26.2056C26.2098 27.5009 26.9123 29.2344 26.9123 31.0388V53.8041C26.9123 56.7775 23.2963 58.243 21.2262 56.1085L2.15209 36.4407C0.895891 35.1454 0.193359 33.4119 0.193359 31.6075V8.84226Z" fill="white"/>
+                </svg>
+            </a>
+            <!-- 第二个SVG图标 -->
+            <a href="index.html" class="logo">
+                <svg id="icon-2" width="58" height="13" viewBox="0 0 116 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.7296 25.9745C8.14072 25.9745 5.35405 24.8451 3.36961 22.5862C1.40628 20.3273 0.424609 17.1817 0.424609 13.1495C0.424609 9.15951 1.39572 6.02451 3.33794 3.74451C5.28017 1.46451 8.06683 0.324511 11.6979 0.324511C13.8724 0.324511 15.7302 0.736178 17.2713 1.55951C18.8124 2.36173 20.0157 3.48062 20.8813 4.91618C21.7468 6.35173 22.2535 7.9984 22.4013 9.85618H17.1129C16.9441 8.12507 16.3846 6.77396 15.4346 5.80284C14.4846 4.81062 13.2496 4.31451 11.7296 4.31451C9.8085 4.31451 8.36239 5.08507 7.39128 6.62618C6.42017 8.16729 5.93461 10.3523 5.93461 13.1812C5.93461 16.1156 6.43072 18.3217 7.42294 19.7995C8.43628 21.2562 9.86128 21.9845 11.6979 21.9845C13.2813 21.9845 14.5374 21.4778 15.4663 20.4645C16.4163 19.4512 16.9652 18.1106 17.1129 16.4428H22.4013C22.2535 18.3006 21.7468 19.9473 20.8813 21.3828C20.0157 22.8184 18.8124 23.9478 17.2713 24.7712C15.7513 25.5734 13.9041 25.9745 11.7296 25.9745ZM32.0279 25.8795C30.2546 25.8795 28.7979 25.4573 27.6579 24.6128C26.5179 23.7473 25.6735 22.5651 25.1246 21.0662C24.5757 19.5673 24.3013 17.8678 24.3013 15.9678C24.3013 14.0045 24.5757 12.284 25.1246 10.8062C25.6946 9.3284 26.5496 8.17784 27.6896 7.35451C28.8296 6.53118 30.2652 6.11951 31.9963 6.11951C33.3263 6.11951 34.4135 6.3834 35.2579 6.91118C36.1235 7.41784 36.7779 8.10396 37.2213 8.96951H37.9813V6.49951H42.7313V25.4995H37.9813V23.0295H37.2213C36.7779 23.8317 36.1341 24.5073 35.2896 25.0562C34.4452 25.6051 33.3579 25.8795 32.0279 25.8795ZM33.3579 22.2695C34.6457 22.2695 35.6696 21.7101 36.4296 20.5912C37.2107 19.4512 37.6013 17.9206 37.6013 15.9995C37.6013 14.0573 37.2107 12.5267 36.4296 11.4078C35.6696 10.289 34.6457 9.72951 33.3579 9.72951C32.1968 9.72951 31.2785 10.2573 30.6029 11.3128C29.9485 12.3473 29.6213 13.9095 29.6213 15.9995C29.6213 18.0895 29.9485 19.6623 30.6029 20.7178C31.2785 21.7523 32.1968 22.2695 33.3579 22.2695ZM53.5687 25.9745C51.4576 25.9745 49.8637 25.3095 48.787 23.9795C47.7104 22.6495 47.172 20.8445 47.172 18.5645V6.49951H52.302V17.7095C52.302 18.9973 52.5343 20.0001 52.9987 20.7178C53.4631 21.4356 54.2126 21.7945 55.247 21.7945C56.4926 21.7945 57.4531 21.309 58.1287 20.3378C58.8043 19.3667 59.142 18.174 59.142 16.7595V6.49951H64.272V25.4995H59.6487V22.6495H58.8887C58.572 23.5995 57.9915 24.3912 57.147 25.0245C56.3026 25.6578 55.1098 25.9745 53.5687 25.9745ZM76.0421 25.9745C73.931 25.9745 72.2421 25.6473 70.9755 24.9928C69.7299 24.3173 68.8116 23.4728 68.2205 22.4595C67.6505 21.4462 67.3232 20.4328 67.2388 19.4195H72.1155C72.221 19.9684 72.4427 20.4751 72.7805 20.9395C73.1394 21.3828 73.6038 21.7312 74.1738 21.9845C74.7649 22.2378 75.4721 22.3645 76.2955 22.3645C77.3088 22.3645 78.0371 22.1956 78.4805 21.8578C78.9238 21.499 79.1455 21.0451 79.1455 20.4962C79.1455 19.9895 78.9344 19.5673 78.5121 19.2295C78.111 18.8706 77.446 18.5434 76.5171 18.2478L74.2371 17.4878C73.1394 17.1078 72.126 16.6962 71.1971 16.2528C70.2682 15.7884 69.5188 15.1973 68.9488 14.4795C68.3999 13.7617 68.1255 12.8328 68.1255 11.6928C68.1255 10.004 68.7694 8.64229 70.0571 7.60785C71.3449 6.55229 73.171 6.02451 75.5355 6.02451C77.2455 6.02451 78.6388 6.2884 79.7155 6.81618C80.8132 7.34396 81.6366 8.05118 82.1855 8.93784C82.7344 9.8034 83.051 10.764 83.1355 11.8195H78.4488C78.3432 11.0595 78.0266 10.479 77.4988 10.0778C76.971 9.65562 76.2532 9.44451 75.3455 9.44451C74.5221 9.44451 73.8994 9.60284 73.4771 9.91951C73.076 10.2362 72.8755 10.669 72.8755 11.2178C72.8755 11.7667 73.0971 12.2206 73.5405 12.5795C73.9838 12.9384 74.6594 13.2656 75.5671 13.5612L77.8471 14.2895C78.9449 14.6273 79.9477 15.0284 80.8555 15.4928C81.7844 15.9362 82.5232 16.5273 83.0721 17.2662C83.621 17.984 83.8955 18.9234 83.8955 20.0845C83.8955 21.8578 83.2199 23.2828 81.8688 24.3595C80.5388 25.4362 78.5966 25.9745 76.0421 25.9745ZM84.2631 25.4995V25.3095L91.7048 0.79951H100.033L107.506 25.3095V25.4995H102.06L96.0748 4.91618H95.3148L89.2664 25.4995H84.2631ZM90.4381 19.3245L91.5464 15.3345H99.8431L100.951 19.3245H90.4381ZM110.166 25.4995V0.79951H115.486V25.4995H110.166Z" fill="white"/>
+                </svg>
+            </a>
+        </div>
+        <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+        <a href="data-preparation.html"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+        <a href="statistical-analysis.html"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+        <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+        <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+        <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
+        <div class="user-info">
+            <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+            <span>用户名</span>
+            <div class="user-dropdown">
+                <a href="profile.html">个人信息</a>
+                <a href="logout.html">退出系统</a>
+                    <a href="javascript:void(0);" id="settings-button">设置</a>
+            </div>
+        </div>
+    </div>
+   <!-- 左侧面板 -->
+   <div class="left-panel">
+        <h2>因果分析工作区</h2>
+        
+        <!-- 变量选择区 -->
+        <div class="section_graph">
+            <div class="causal-header">
+                <h3>因果图</h3>
+                <button id="generate" onclick="sendMessage()">等价类处理</button>
+            </div>
+            <div id="causal-graph-preview" class="graph-placeholder">
+            <!-- <div id="causal-graph-preview" > -->
+            </div>
+        </div>
+
+        <!-- 因果效应分析 -->
+        <div class="section">
+            <h3>因果效应分析</h3>
+            <div class="selection-box">
+                <label>原因变量：</label>
+                <select id="cause-var" class="var-selector"></select>
+                <label>结果变量：</label>
+                <select id="effect-var" class="var-selector"></select>
+            </div>
+            <button onclick="generateCausalGraph()">筛选后门调整集</button>
+        </div>
+    </div>
+
+    <!-- 右侧面板 -->
+    <div class="right-panel">
+        <!-- 后门调整分析 -->
+        <div class="section">
+            <h3>后门调整分析</h3>
+            <div id="result-display1">
+            </div>
+            <div class="semantic-actions">
+                <button onclick="calculateEffect()">进行最终推断</button>
+                <button onclick="saveSemanticFavorite()"><i class="fas fa-star"></i> 收藏分析</button>
+            </div>
+        </div>
+
+        <!-- 结果展示 -->
+        <div class="section_graph">
+            <h3>因果效应结果</h3>
+            <div id="result-display" class="graph-placeholder_1">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        let csvData;
+        // 动态加载变量选项
+        let causeVar = "";
+        let effectVar = ""; 
+         function renderGraph(rawNodes, rawEdges) {
+            // 将原始节点数据转换为 Vis.js 格式
+            const nodes = rawNodes.map((label, index) => ({
+                id: String(index), // 使用索引作为 id
+                label: label,      // 使用原始值作为节点标签
+            }));
+
+            // 构建节点标签到 ID 的映射表
+            const labelToId = nodes.reduce((map, node) => {
+                map[node.label] = node.id;
+                return map;
+            }, {});
+
+            // 将原始边数据的 source 和 target 转换为节点的 id
+            const edges = rawEdges.map(edge => ({
+                from: labelToId[edge.from || edge.source], // 使用映射找到对应的 from id
+                to: labelToId[edge.to || edge.target],   // 使用映射找到对应的 to id
+                arrows: {
+                    to: { enabled: true, scaleFactor: 1.2 }, // 美化箭头
+                },
+                color: {
+                    color: '#000000',      // 边默认颜色改为黑色
+                    highlight: '#FF5733', // 高亮颜色
+                    hover: '#2ECC71',     // 悬浮颜色
+                },
+                width: 2, // 边宽度
+            }));
+
+            console.log('Processed Nodes:', nodes);
+            console.log('Processed Edges:', edges);
+
+            // 配置 Vis.js 图的选项
+            const options = {
+                nodes: {
+                    shape: 'dot', // 节点为圆形点
+                    size: 15, // 节点大小
+                    font: {
+                        size: 18,   // 标签字体大小
+                        color: '#2C3E50', // 标签颜色
+                        face: 'Arial',    // 字体样式
+                    },
+                    color: {
+                        background: '#3498DB', // 节点背景色
+                        border: '#2980B9',    // 节点边框色
+                        highlight: {
+                            background: '#1ABC9C', // 高亮背景色
+                            border: '#16A085',    // 高亮边框色
+                        },
+                        hover: {
+                            background: '#F1C40F', // 悬浮背景色
+                            border: '#F39C12',    // 悬浮边框色
+                        },
+                    },
+                    borderWidth: 2, // 节点边框宽度
+                },
+                edges: {
+                    arrows: { to: { enabled: true, scaleFactor: 1.2 } }, // 美化箭头
+                    color: {
+                        color: '#000000',      // 默认黑色边
+                        highlight: '#E74C3C', // 高亮红色边
+                        hover: '#8E44AD',     // 悬浮紫色边
+                    },
+                    smooth: {
+                        type: 'dynamic', // 动态平滑曲线
+                    },
+                    width: 2, // 边默认宽度
+                },
+                interaction: {
+                    dragNodes: true, // 支持拖拽节点
+                    zoomView: true,  // 支持缩放
+                    dragView: true,  // 支持拖拽视图
+                    hover: true,     // 节点悬浮显示
+                },
+                physics: {
+                    enabled: true, // 启用物理引擎
+                    stabilization: {
+                        iterations: 100, // 稳定布局迭代次数
+                    },
+                },
+            };
+
+            // 渲染容器
+            const container = document.getElementById('causal-graph-preview');
+
+            // 创建图形数据
+            const data = {
+                nodes: new vis.DataSet(nodes),
+                edges: new vis.DataSet(edges),
+            };
+            console.log(data);
+
+            // 初始化网络图
+            const network = new vis.Network(container, data, options);
+
+            // 调整布局
+            network.stabilize();
+        }
+
+    async function sendMessage() {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 600000); // 60秒超时
+            // 获取预览容器
+            const previewDiv = document.getElementById('causal-graph-preview');
+
+            try {
+                showLoading('causal-graph-preview', '正在生成因果图，可能需要较长时间...');
+                console.log("begin!!!!!!!!!!!!!!!")
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        messages: [
+                            {role: "user", content: ""}
+                        ]
+                    }),
+                    signal: controller.signal // 绑定终止信号
+                });
+                clearTimeout(timeoutId);
+                console.log("finish!!!!!!!!!!!!!!")
+                console.log(response)
+                const data = await response.json();
+                console.log("========================")
+                console.log(data)
+                console.log(data.edges)
+                console.log(data.nodes)
+
+
+                if (!data.nodes || !data.edges) {
+                    await loadExistingCausalGraph();
+                    return;
+                }
+                window.currentCausalGraph = {
+                    nodes: data.nodes,
+                    edges: data.edges
+                };
+                 // 清除加载状态
+                hideLoading('causal-graph-preview');
+                renderGraph(data.nodes, data.edges);
+                        // 获取分析结果并显示
+                function fetchData() {
+                    fetch('/get_csv_data_new')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Data received:", data);
+                            if (data.error) {
+                                alert(data.error);
+                            } else {
+                                console.log("*****************")
+                                console.log(data);
+                                csvData = data;
+                            }
+                        })
+                        .catch(error => console.error("获取数据时出错:", error));
+                }
+                fetchData();
+
+            } catch (error) {
+                hideLoading('causal-graph-preview');
+                previewDiv.innerHTML = '<div class="graph-placeholder">数据加载失败，请重试</div>';
+                if (error.name === 'AbortError') {
+                    showTimeoutMessage(); // 显示超时提示
+                }
+                //
+            }
+            
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExistingCausalGraph();
+            // 从后端接口获取数据集
+            fetch('/api/get-var')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络错误或接口不可用');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("++++++++++++++==")
+                        console.log(data);
+                        // 动态填充下拉菜单
+                        const populateSelect = (selectId, options) => {
+                            const select = document.getElementById(selectId);
+                            select.innerHTML = options.map(option => 
+                                `<option value="${option}">${option}</option>`
+                            ).join('');
+                        };
+                        populateSelect('effect-var', []);
+                        const namesString = data.map(data => data.name).join(',');
+                        const namesArray = namesString.split(',');
+                        namesArray.unshift('');
+                        populateSelect('cause-var', namesArray);
+
+                        // 监听第一个下拉菜单的变化
+                        document.getElementById('cause-var').addEventListener('change', (event) => {
+                            console.log("1111111111")
+                            console.log(csvData)
+                            const selectedValue = event.target.value;
+                            
+                            // 根据选择的第一个变量更新第二个下拉菜单
+                            const filteredOptions = csvData
+                                .filter(item => item.Endpoint1 === 'TAIL' && item.Endpoint2 === 'ARROW' && item.Node1 === selectedValue)
+                                .map(item => item.Node2);
+                            
+                            populateSelect('effect-var', filteredOptions);
+                        });
+                        causeVar = document.getElementById('cause-var').value;
+                        effectVar = document.getElementById('effect-var').value;
+                    })
+                    .catch(error => {
+                        console.error('数据加载错误:', error);
+                        document.getElementById('dataset-config').innerHTML = '<p>数据加载失败，请稍后重试。</p>';
+                    });
+
+        });
+
+            async function loadExistingCausalGraph() {
+                try {
+                    const response = await fetch('/get-csv-data');
+                    const data = await response.json();
+                    if (data.error || !data.nodes || !data.edges) {
+                        document.getElementById('causal-graph-preview').innerHTML = '请先在“数据驱动因果”页面完成因果分析。';
+                        return;
+                    }
+                    window.currentCausalGraph = { nodes: data.nodes, edges: data.edges };
+                    csvData = data.csv_data || [];
+                    renderGraph(data.nodes, data.edges);
+                } catch (error) {
+                    document.getElementById('causal-graph-preview').innerHTML = '暂未读取到因果图结果。';
+                }
+            }
+
+            
+            function generateCausalGraph() {
+                // 获取当前选中的变量
+                const causeVar = document.getElementById('cause-var').value;
+                const effectVar = document.getElementById('effect-var').value;
+                
+                // 验证数据完整性
+                if (!causeVar || !effectVar || !window.currentCausalGraph) {
+                    alert("请先选择变量并生成因果图");
+                    return;
+                }
+                document.getElementById('result-display1').innerHTML = '';
+                showLoading('result-display1', '正在筛选后门调整集...');
+                // 调用独立分析函数
+                analyzeBackdoor(causeVar, effectVar)
+                    .finally(() => {
+                        // 无论成功失败都隐藏加载状态
+                        hideLoading('result-display1');
+                    });
+
+            }
+
+            // analyzeBackdoor函数
+            async function analyzeBackdoor(causeVar, effectVar) {
+                try {
+                    const response = await fetch('/api/backdoor_adjustment', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            cause_var: causeVar,
+                            effect_var: effectVar,
+                            nodes: window.currentCausalGraph.nodes,
+                            edges: window.currentCausalGraph.edges
+                        })
+                    });
+
+                    const result = await response.json();
+                    displayAdjustmentResult(result.adjustment_set);
+                } catch (error) {
+                    console.error('分析失败:', error);
+                    showError("后端请求失败");
+                }
+            }
+
+            // 新增结果显示函数
+        function displayAdjustmentResult(adjustmentSet) {
+            const resultDiv = document.getElementById('result-display1');
+            resultDiv.innerHTML = adjustmentSet.length > 0 
+                ? `<strong>需要调整的变量集：</strong>${adjustmentSet.join(', ')}`
+                : "无需后门调整";
+            }
+            function calculateEffect() {
+                // 获取选中的变量
+                const causeVar = document.getElementById('cause-var').value;
+                const effectVar = document.getElementById('effect-var').value;
+                console.log(causeVar, effectVar);
+                // 验证数据完整性
+                if (!causeVar || !effectVar || !window.currentCausalGraph) {
+                    alert("请先选择变量并生成因果图");
+                    return;
+                }
+
+                // 构造请求数据
+                const requestData = {
+                    cause_var: causeVar,
+                    effect_var: effectVar,
+                    nodes: window.currentCausalGraph.nodes,
+                    edges: window.currentCausalGraph.edges
+                };
+
+                // 发送POST请求
+                fetch('/api/calculate-effect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应异常');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // 展示结果到页面
+                        displayResult(data);
+                        
+                        // 调用大模型分析功能
+                        performCausalAnalysis();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('请求失败: ' + error.message);
+                });
+            }
+
+            // 结果展示函数
+            function displayResult(data) {
+                const resultDiv = document.getElementById('result-display');
+                
+                // 使用Plotly绘制结果（示例）
+                const traces = [{
+                    x: Object.keys(data),
+                    y: Object.values(data),
+                    type: 'bar'
+                }];
+                
+                Plotly.newPlot(resultDiv, traces, {
+                    title: '因果效应指标',
+                    yaxis: { title: '数值' },
+                    width: 600,  // 设置图表宽度
+                    height: 320  // 设置图表高度
+                });
+            }
+
+             // 通用加载状态控制函数
+             function showLoading(containerId, text = '正在分析中，请稍候...') {
+                const container = document.getElementById(containerId);
+                container.style.position = 'relative';
+                container.innerHTML += `
+                    <div class="loading-overlay">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">${text}</div>
+                    </div>
+                `;
+            }
+
+            function hideLoading(containerId) {
+                const container = document.getElementById(containerId);
+                const overlay = container.querySelector('.loading-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
+
+            // 大模型分析函数
+            async function performCausalAnalysis() {
+                try {
+                    // 显示弹窗
+                    showAnalysisModal();
+                    
+                    // 检查必需的DOM元素是否存在
+                    const loadingElement = document.getElementById('analysisLoading');
+                    const resultElement = document.getElementById('analysisResult');
+                    
+                    if (!loadingElement || !resultElement) {
+                        console.error('所需的DOM元素未找到');
+                        return;
+                    }
+                    
+                    // 显示加载状态
+                    loadingElement.style.display = 'flex';
+                    resultElement.innerHTML = '';
+                    
+                    // 读取result_new.csv文件内容
+                    const response = await fetch('/get_csv_data_new?format=csv');
+                    const csvContent = await response.text();
+                    
+                    // 在弹窗中显示数据预览
+                    displayCausalDataPreview(csvContent);
+                    
+                    // 发送给大模型分析
+                    const analysisResponse = await fetch('/api/analyze-causal-results', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            causal_data: csvContent,
+                            prompt: "这是我基于教育场景下的数据集进行因果推断得到的因果图，帮我分析下可以从中得到哪些结论。"
+                        })
+                    });
+                    
+                    const analysisResult = await analysisResponse.json();
+                    
+                    // 隐藏加载状态并显示结果
+                    loadingElement.style.display = 'none';
+                    
+                    if (analysisResult.success) {
+                        resultElement.innerHTML = 
+                            `<div style="white-space: pre-wrap; line-height: 1.8;">${analysisResult.analysis}</div>`;
+                    } else {
+                        resultElement.innerHTML = 
+                            `<div style="color: #e74c3c;">分析失败: ${analysisResult.error}</div>`;
+                    }
+                    
+                } catch (error) {
+                    console.error('分析过程出错:', error);
+                    const loadingElement = document.getElementById('analysisLoading');
+                    const resultElement = document.getElementById('analysisResult');
+                    
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    if (resultElement) {
+                        resultElement.innerHTML = 
+                            `<div style="color: #e74c3c;">分析过程出错: ${error.message}</div>`;
+                    }
+                }
+            }
+
+            // 显示数据预览
+            function displayCausalDataPreview(csvContent) {
+                const previewElement = document.getElementById('causalDataPreview');
+                if (!previewElement) {
+                    console.error('数据预览元素未找到');
+                    return;
+                }
+                
+                const lines = csvContent.trim().split('\n');
+                const maxLines = 10; // 最多显示10行
+                const preview = lines.slice(0, maxLines).join('\n');
+                const remaining = lines.length - maxLines;
+                
+                let previewText = preview;
+                if (remaining > 0) {
+                    previewText += `\n... 还有 ${remaining} 行数据`;
+                }
+                
+                previewElement.textContent = previewText;
+            }
+
+            // 显示弹窗
+            function showAnalysisModal() {
+                const modal = document.getElementById('analysisModal');
+                const resultElement = document.getElementById('analysisResult');
+                const previewElement = document.getElementById('causalDataPreview');
+                const loadingElement = document.getElementById('analysisLoading');
+                
+                if (modal) modal.style.display = 'block';
+                
+                // 重置内容
+                if (resultElement) resultElement.innerHTML = '';
+                if (previewElement) previewElement.textContent = '';
+                if (loadingElement) loadingElement.style.display = 'none';
+            }
+
+            // 关闭弹窗
+            function closeAnalysisModal() {
+                document.getElementById('analysisModal').style.display = 'none';
+            }
+
+            function saveSemanticFavorite() {
+                const cause = document.getElementById('cause-var').value;
+                const effect = document.getElementById('effect-var').value;
+                const result = document.getElementById('result-display1').innerText || document.getElementById('result-display').innerText || '';
+                fetch('/api/favorites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        kind: 'semantic',
+                        title: cause && effect ? `语义因果：${cause} → ${effect}` : '语义因果分析视图',
+                        description: result || '保存当前语义理解因果分析工作区。',
+                        payload: {
+                            page: 'big-model-analysis.html',
+                            cause,
+                            effect,
+                            graph: window.currentCausalGraph || null
+                        }
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => alert(data.success ? '已加入收藏夹' : (data.message || '收藏失败')))
+                    .catch(() => alert('收藏失败，请稍后重试'));
+            }
+
+            // 点击弹窗外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('analysisModal');
+                if (event.target === modal) {
+                    closeAnalysisModal();
+                }
+            }
+    </script>
+
+    <!-- 大模型分析结果弹窗 -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">因果图智能分析结果</h2>
+                <span class="close" onclick="closeAnalysisModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="analysis-section">
+                    <div class="analysis-title">数据概览</div>
+                    <div id="causalDataPreview" class="causal-data-preview">
+                        <!-- 因果关系数据预览 -->
+                    </div>
+                </div>
+                <div class="analysis-section">
+                    <div class="analysis-title">智能分析结果</div>
+                    <div class="loading-overlay" id="analysisLoading" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">正在分析因果关系，请稍候...</div>
+                    </div>
+                    <div id="analysisResult">
+                        <!-- 大模型分析结果 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

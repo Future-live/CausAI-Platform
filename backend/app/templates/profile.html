@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/global-style.css">
+    <style>
+        .profile-page {
+            flex: 1;
+            padding: 20px;
+            background: #f6f8fc;
+            overflow: auto;
+        }
+
+        .compact-sidebar {
+            justify-content: flex-start;
+            gap: 4px;
+        }
+
+        .compact-sidebar .user-info {
+            margin-top: auto;
+        }
+
+        .profile-hero {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 18px;
+            align-items: center;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(39, 60, 117, 0.08);
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #273c75, #4cbfff);
+        }
+
+        .profile-hero h1 {
+            margin: 0;
+            color: #1f2a44;
+            font-size: 26px;
+            letter-spacing: 0;
+        }
+
+        .profile-hero p {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .profile-badge {
+            padding: 7px 12px;
+            border-radius: 999px;
+            color: #273c75;
+            background: #eef3ff;
+            border: 1px solid #d6e0f2;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .profile-card {
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(39, 60, 117, 0.06);
+        }
+
+        .profile-card span {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .profile-card strong {
+            display: block;
+            margin-top: 8px;
+            color: #22304a;
+            font-size: 30px;
+            line-height: 1;
+        }
+
+        .account-panel {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8fafc;
+            color: #22304a;
+            font-size: 14px;
+        }
+
+        .info-row span {
+            color: #718096;
+            font-weight: 700;
+        }
+
+        .quick-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .quick-actions a {
+            margin: 0;
+            color: #273c75;
+            background: #f4f7fc;
+            border: 1px solid #dbe4f1;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 900px) {
+            .profile-grid,
+            .account-panel {
+                grid-template-columns: 1fr;
+            }
+            .profile-hero {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar compact-sidebar">
+        <a href="index.html"><i class="fas fa-home"></i><span>主页</span></a>
+        <a href="data-upload.html"><i class="fas fa-upload"></i><span>数据上传</span></a>
+        <a href="data-preparation.html"><i class="fas fa-cogs"></i><span>数据准备</span></a>
+        <a href="statistical-analysis.html"><i class="fas fa-chart-bar"></i><span>统计分析</span></a>
+        <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
+        <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
+        <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
+        <div class="user-info">
+            <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+            <span>{{ user.username }}</span>
+        </div>
+    </div>
+    <main class="profile-page">
+        <section class="profile-hero">
+            <div class="avatar">{{ user.username[:1] | upper }}</div>
+            <div>
+                <h1>{{ user.username }}</h1>
+                <p>{{ user.email }} · 加入于 {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</p>
+            </div>
+            <div class="profile-badge">{{ user.role }}</div>
+        </section>
+
+        <section class="profile-grid">
+            <div class="profile-card"><span>数据集</span><strong>{{ dataset_count }}</strong></div>
+            <div class="profile-card"><span>分析任务</span><strong>{{ job_count }}</strong></div>
+            <div class="profile-card"><span>收藏内容</span><strong>{{ favorite_count }}</strong></div>
+        </section>
+
+        <section class="account-panel">
+            <div class="profile-card">
+                <span>账号信息</span>
+                <div class="info-list">
+                    <div class="info-row"><span>用户名</span><div>{{ user.username }}</div></div>
+                    <div class="info-row"><span>邮箱</span><div>{{ user.email }}</div></div>
+                    <div class="info-row"><span>状态</span><div>{{ '启用' if user.is_active else '停用' }}</div></div>
+                    <div class="info-row"><span>最近更新</span><div>{{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else '-' }}</div></div>
+                </div>
+            </div>
+            <div class="profile-card">
+                <span>常用操作</span>
+                <div class="quick-actions">
+                    <a href="data-upload.html">上传新数据 <i class="fas fa-arrow-right"></i></a>
+                    <a href="statistical-analysis.html">继续统计分析 <i class="fas fa-arrow-right"></i></a>
+                    <a href="favorites.html">查看收藏夹 <i class="fas fa-arrow-right"></i></a>
+                    <a href="logout.html">退出登录 <i class="fas fa-sign-out-alt"></i></a>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
