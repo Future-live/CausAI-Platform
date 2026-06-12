@@ -443,15 +443,7 @@
         <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
         <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
         <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
-        <div class="user-info">
-            <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
-            <span>用户名</span>
-            <div class="user-dropdown">
-                <a href="profile.html">个人信息</a>
-                <a href="logout.html">退出系统</a>
-                    <a href="javascript:void(0);" id="settings-button">设置</a>
-            </div>
-        </div>
+        {% include 'partials/sidebar_user.html' %}
     </div>
    <!-- 左侧面板 -->
    <div class="left-panel">
@@ -1047,5 +1039,6 @@
         </div>
     </div>
 
+<script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>
 </html>

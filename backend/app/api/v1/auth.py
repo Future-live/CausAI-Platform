@@ -5,7 +5,7 @@ from app.core.config import Settings, get_settings
 from app.core.security import clear_auth_cookies, decode_token, get_current_user, set_auth_cookies
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import AuthResponse, UserCreate, UserLogin, UserRead
+from app.schemas.auth import AuthResponse, RefreshTokenRequest, UserCreate, UserLogin, UserRead
 from app.schemas.common import MessageResponse
 from app.services.auth import authenticate_user, register_user
 
@@ -20,8 +20,8 @@ def register(
     settings: Settings = Depends(get_settings),
 ) -> AuthResponse:
     user = register_user(db, payload)
-    set_auth_cookies(response, user.id, settings)
-    return AuthResponse(user=UserRead.model_validate(user))
+    tokens = set_auth_cookies(response, user.id, settings)
+    return AuthResponse(user=UserRead.model_validate(user), **tokens)
 
 
 @router.post("/login", response_model=AuthResponse)
@@ -32,8 +32,8 @@ def login(
     settings: Settings = Depends(get_settings),
 ) -> AuthResponse:
     user = authenticate_user(db, payload)
-    set_auth_cookies(response, user.id, settings)
-    return AuthResponse(user=UserRead.model_validate(user))
+    tokens = set_auth_cookies(response, user.id, settings)
+    return AuthResponse(user=UserRead.model_validate(user), **tokens)
 
 
 @router.post("/logout", response_model=MessageResponse)
@@ -56,8 +56,23 @@ def refresh(
     user = db.get(User, user_id)
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
-    set_auth_cookies(response, user.id, settings)
-    return AuthResponse(user=UserRead.model_validate(user))
+    tokens = set_auth_cookies(response, user.id, settings)
+    return AuthResponse(user=UserRead.model_validate(user), **tokens)
+
+
+@router.post("/token/refresh", response_model=AuthResponse)
+def refresh_with_token(
+    payload: RefreshTokenRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> AuthResponse:
+    user_id = decode_token(payload.refresh_token, "refresh", settings)
+    user = db.get(User, user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
+    tokens = set_auth_cookies(response, user.id, settings)
+    return AuthResponse(user=UserRead.model_validate(user), **tokens)
 
 
 @router.get("/me", response_model=UserRead)

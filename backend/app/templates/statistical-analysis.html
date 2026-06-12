@@ -560,6 +560,128 @@
             transform: translateY(-1px);
         }
 
+        .analysis-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #fbfcff;
+            border-bottom: 1px solid #e4e8f1;
+            flex-wrap: wrap;
+        }
+
+        .analysis-tools button {
+            min-height: 30px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #d7e0ef;
+            color: #273c75;
+            background: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: none;
+            transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .analysis-tools button:hover {
+            background: #eef3ff;
+            border-color: #273c75;
+            transform: translateY(-1px);
+        }
+
+        .analysis-panel {
+            display: none;
+            margin: 8px 12px 0;
+            padding: 10px;
+            border: 1px solid #dbe4f2;
+            border-radius: 7px;
+            background: #ffffff;
+            color: #34445f;
+            font-size: 12px;
+            box-shadow: 0 4px 14px rgba(39, 60, 117, 0.06);
+        }
+
+        .analysis-panel.active {
+            display: block;
+        }
+
+        .analysis-panel h3 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #1f2a44;
+        }
+
+        .suggestion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 8px;
+        }
+
+        .suggestion-card {
+            padding: 9px;
+            border: 1px solid #e2e8f3;
+            border-radius: 6px;
+            background: #f8fbff;
+        }
+
+        .suggestion-card strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #25324a;
+        }
+
+        .suggestion-card p {
+            margin: 0 0 8px;
+            color: #65738a;
+            line-height: 1.45;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .suggestion-card button {
+            min-height: 28px;
+            padding: 5px 9px;
+            border-radius: 5px;
+            font-size: 12px;
+            background: #273c75;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .matrix-table th {
+            color: #1f2a44;
+            background: #f5f7fb;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .outlier-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .outlier-item {
+            padding: 8px;
+            border-radius: 6px;
+            background: #f7f9fd;
+            border: 1px solid #e2e8f3;
+        }
+
         /* 自定义滚动条样式 */
         #fields::-webkit-scrollbar {
             width: 8px;
@@ -752,15 +874,8 @@
             <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
             <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
             <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
-            <div class="user-info" onclick="toggleDropdown()" onmouseleave="hideDropdown()">
-                <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
-                <span>用户名</span>
-                <div class="user-dropdown">
-                    <a href="profile.html">个人信息</a>
-                    <a href="logout.html">退出系统</a>
-                    <a href="javascript:void(0);" onclick="openSettingsModal()" id="settings-button">设置</a>
-                </div>
-            </div>
+            {% set show_sidebar_settings = true %}
+            {% include 'partials/sidebar_user.html' %}
         </div>
 
         <div class="main-content">
@@ -776,29 +891,29 @@
                     <ul id="fields">
                         <h2>字段列表</h2>
                         {% for column in columns %}
-                        <li draggable="true" ondragstart="drag(event)" ondragend="endDrag(event)" id="{{ column }}" data-field="{{ column }}">
+                        <li draggable="true" ondragstart="drag(event)" ondragend="endDrag(event)" id="field-{{ loop.index }}" data-field="{{ column }}">
                             <span class="field-name">{{ column }}</span>
                             <small class="field-meta">字段</small>
                         </li>
                         {% endfor %}
                     </ul>
                     <div class="drop-zone-container">
-                        <div class="drop-zone" ondrop="drop(event, 'x')" ondragover="allowDrop(event)" data-var-type="X 轴">
+                        <div class="drop-zone" ondrop="drop(event, 'x')" ondragover="allowDrop(event)" data-var-type="X 轴" data-axis="x">
                             <span class="zone-main"><span class="zone-label">X 轴</span><span class="zone-value">拖入自变量 / 横轴</span></span><span class="zone-badge">required</span>
                         </div>
-                        <div class="drop-zone" ondrop="drop(event, 'y')" ondragover="allowDrop(event)" data-var-type="Y 轴">
+                        <div class="drop-zone" ondrop="drop(event, 'y')" ondragover="allowDrop(event)" data-var-type="Y 轴" data-axis="y">
                             <span class="zone-main"><span class="zone-label">Y 轴</span><span class="zone-value">拖入指标 / 纵轴</span></span><span class="zone-badge">required</span>
                         </div>
                         <div class="drop-zone" ondrop="drop(event, 'color')" ondragover="allowDrop(event)"
-                            data-var-type="颜色">
+                            data-var-type="颜色" data-axis="color">
                             <span class="zone-main"><span class="zone-label">颜色</span><span class="zone-value">分组或类别变量</span></span><span class="zone-badge">optional</span>
                         </div>
                         <div class="drop-zone" ondrop="drop(event, 'size')" ondragover="allowDrop(event)"
-                            data-var-type="大小">
+                            data-var-type="大小" data-axis="size">
                             <span class="zone-main"><span class="zone-label">大小</span><span class="zone-value">数值字段映射点大小</span></span><span class="zone-badge">optional</span>
                         </div>
                         <div class="drop-zone" ondrop="drop(event, 'opacity')" ondragover="allowDrop(event)"
-                            data-var-type="透明度">
+                            data-var-type="透明度" data-axis="opacity">
                             <span class="zone-main"><span class="zone-label">透明度</span><span class="zone-value">数值字段映射透明度</span></span><span class="zone-badge">optional</span>
                         </div>
                         <button onclick="generateChart()">生成图表</button>
@@ -819,6 +934,13 @@
                             <i class="fas fa-brain"></i> 因果分析
                         </button>
                     </div>
+                    <div class="analysis-tools">
+                        <button onclick="loadChartSuggestions()"><i class="fas fa-magic"></i> 推荐视图</button>
+                        <button onclick="loadCorrelationMatrix()"><i class="fas fa-th"></i> 相关矩阵</button>
+                        <button onclick="loadOutliers()"><i class="fas fa-search-plus"></i> 异常值</button>
+                        <button onclick="clearAnalysisPanel()"><i class="fas fa-times"></i> 收起</button>
+                    </div>
+                    <div id="analysis-panel" class="analysis-panel"></div>
                     <div id="chart-status" class="chart-status">拖动字段到 X 轴和 Y 轴后会自动生成图表。</div>
                     <div id="chart">
                         <div class="tooltip" id="tooltip">
@@ -892,9 +1014,22 @@
             opacity: null
         };
 
-        let chartType = 'scatter';
-        let draggedBlock = null;
-        let autoChartTimer = null;
+	        let chartType = 'scatter';
+	        let draggedBlock = null;
+	        let autoChartTimer = null;
+	        const activeDatasetId = "{{ dataset_id|default('', true) }}";
+	        const activeVersionId = "{{ version_id|default('', true) }}";
+	        let chartSuggestionsCache = [];
+
+	        function escapeHtml(value) {
+	            return String(value ?? '').replace(/[&<>"']/g, char => ({
+	                '&': '&amp;',
+	                '<': '&lt;',
+	                '>': '&gt;',
+	                '"': '&quot;',
+	                "'": '&#39;'
+	            }[char]));
+	        }
 
         function allowDrop(event) {
             event.preventDefault();
@@ -916,7 +1051,7 @@
             return Boolean(dropData.x && dropData.y);
         }
 
-        function renderDropZoneContent(dropZone, axis, value) {
+	        function renderDropZoneContent(dropZone, axis, value) {
             const labels = {
                 x: ['X 轴', '拖入自变量 / 横轴', 'required'],
                 y: ['Y 轴', '拖入指标 / 纵轴', 'required'],
@@ -925,13 +1060,13 @@
                 opacity: ['透明度', '数值字段映射透明度', 'optional']
             };
             const [label, hint, badge] = labels[axis] || [dropZone.getAttribute('data-var-type'), '', ''];
-            dropZone.innerHTML = `
-                <span class="zone-main">
-                    <span class="zone-label">${label}</span>
-                    <span class="zone-value">${value || hint}</span>
-                </span>
-                <span class="zone-badge">${value ? 'selected' : badge}</span>
-            `;
+	            dropZone.innerHTML = `
+	                <span class="zone-main">
+	                    <span class="zone-label">${escapeHtml(label)}</span>
+	                    <span class="zone-value">${escapeHtml(value || hint)}</span>
+	                </span>
+	                <span class="zone-badge">${escapeHtml(value ? 'selected' : badge)}</span>
+	            `;
             dropZone.classList.toggle('active', Boolean(value));
             dropZone.style.backgroundColor = '';
             dropZone.style.color = '';
@@ -997,17 +1132,28 @@
                 draggedBlock.style.top = (event.pageY + 10) + 'px';
             }
         }
-        function updateFieldColors() {
-            const fieldItems = document.querySelectorAll("#fields li");  // 获取所有字段列表项
-            fieldItems.forEach(item => {
-                // 检查 dropData 中是否有对应的字段
-                if (Object.values(dropData).includes(item.id)) {
-                    item.classList.add('is-used');
-                } else {
-                    item.classList.remove('is-used');
-                }
-            });
-        }
+	        function updateFieldColors() {
+	            const fieldItems = document.querySelectorAll("#fields li");  // 获取所有字段列表项
+	            fieldItems.forEach(item => {
+	                // 检查 dropData 中是否有对应的字段
+	                const fieldName = item.dataset.field || item.id;
+	                if (Object.values(dropData).includes(fieldName)) {
+	                    item.classList.add('is-used');
+	                } else {
+	                    item.classList.remove('is-used');
+	                }
+	            });
+	        }
+
+	        function updateAllDropZones() {
+	            Object.keys(dropData).forEach(axis => {
+	                const dropZone = document.querySelector(`.drop-zone[data-axis="${axis}"]`);
+	                if (dropZone) {
+	                    renderDropZoneContent(dropZone, axis, dropData[axis]);
+	                }
+	            });
+	            updateFieldColors();
+	        }
         function drop(event, axis) {
             event.preventDefault();
             let data = event.dataTransfer.getData("text");
@@ -1065,8 +1211,8 @@
         }
 
 
-        function setChartType(type) {
-            chartType = type;
+	        function setChartType(type, shouldSchedule = true) {
+	            chartType = type;
 
             // 移除所有按钮的活动状态
             document.getElementById('scatter-button').classList.remove('active');
@@ -1088,8 +1234,199 @@
                 document.getElementById('pixel-button').classList.add('active');
             }
 
-            scheduleAutoChart();
-        }
+	            if (shouldSchedule) {
+	                scheduleAutoChart();
+	            }
+	        }
+
+	        function applyChartConfig(config, shouldGenerate = true) {
+	            if (!config) {
+	                showChartStatus('收藏配置为空，无法恢复图表。', 'error');
+	                return;
+	            }
+	            const validTypes = ['scatter', 'bar', 'line', 'boxplot', 'pixel'];
+	            const nextType = validTypes.includes(config.chartType) ? config.chartType : 'scatter';
+	            const nextDropData = config.dropData || config;
+	            setChartType(nextType, false);
+	            dropData = {
+	                x: nextDropData.x || null,
+	                y: nextDropData.y || null,
+	                color: nextDropData.color || null,
+	                size: nextDropData.size || null,
+	                opacity: nextDropData.opacity || null
+	            };
+	            updateAllDropZones();
+	            if (shouldGenerate) {
+	                scheduleAutoChart();
+	            }
+	        }
+
+	        function restoreFavoriteChartIfNeeded() {
+	            const raw = sessionStorage.getItem('causai:favoriteChart');
+	            if (!raw) {
+	                return;
+	            }
+	            let favorite;
+	            try {
+	                favorite = JSON.parse(raw);
+	            } catch (error) {
+	                sessionStorage.removeItem('causai:favoriteChart');
+	                return;
+	            }
+	            const config = favorite.payload?.chartType || favorite.payload?.dropData
+	                ? favorite.payload
+	                : favorite.snapshot || null;
+	            if (favorite.dataset_id && activeDatasetId && favorite.dataset_id !== activeDatasetId && !favorite.__datasetSwitched) {
+	                favorite.__datasetSwitched = true;
+	                sessionStorage.setItem('causai:favoriteChart', JSON.stringify(favorite));
+	                fetch('/set_session', {
+	                    method: 'POST',
+	                    headers: { 'Content-Type': 'application/json' },
+	                    body: JSON.stringify({ dataset_id: favorite.dataset_id })
+	                })
+	                    .then(response => response.json())
+	                    .then(data => {
+	                        if (data.success) {
+	                            location.reload();
+	                        } else {
+	                            sessionStorage.removeItem('causai:favoriteChart');
+	                            showChartStatus(data.message || '收藏所属数据集不可用，无法恢复图表。', 'error');
+	                        }
+	                    })
+	                    .catch(() => {
+	                        sessionStorage.removeItem('causai:favoriteChart');
+	                        showChartStatus('收藏所属数据集切换失败，无法恢复图表。', 'error');
+	                    });
+	                return;
+	            }
+	            sessionStorage.removeItem('causai:favoriteChart');
+	            applyChartConfig(config, true);
+	            showChartStatus(`已恢复收藏图表：${favorite.title || '未命名图表'}`);
+	        }
+
+	        function analysisPanel() {
+	            return document.getElementById('analysis-panel');
+	        }
+
+	        function showAnalysisPanel(title, html) {
+	            const panel = analysisPanel();
+	            if (!panel) {
+	                return;
+	            }
+	            panel.classList.add('active');
+	            panel.innerHTML = `<h3>${escapeHtml(title)}</h3>${html}`;
+	        }
+
+	        function clearAnalysisPanel() {
+	            const panel = analysisPanel();
+	            if (panel) {
+	                panel.classList.remove('active');
+	                panel.innerHTML = '';
+	            }
+	        }
+
+	        function requireActiveVersion() {
+	            if (!activeVersionId) {
+	                showChartStatus('请先上传或选择数据集。', 'error');
+	                return false;
+	            }
+	            return true;
+	        }
+
+	        function loadChartSuggestions() {
+	            if (!requireActiveVersion()) {
+	                return;
+	            }
+	            showAnalysisPanel('推荐视图', '<p>正在根据字段类型生成推荐...</p>');
+	            fetch(`/api/v1/dataset-versions/${activeVersionId}/chart-suggestions`)
+	                .then(response => response.json())
+	                .then(items => {
+	                    chartSuggestionsCache = Array.isArray(items) ? items : [];
+	                    if (!chartSuggestionsCache.length) {
+	                        showAnalysisPanel('推荐视图', '<p>当前数据字段不足以生成推荐视图。</p>');
+	                        return;
+	                    }
+	                    const html = `<div class="suggestion-grid">${chartSuggestionsCache.map((item, index) => `
+	                        <div class="suggestion-card">
+	                            <strong>${escapeHtml(item.title)}</strong>
+	                            <p>${escapeHtml(item.reason)}</p>
+	                            <button onclick="applyChartSuggestion(${index})">应用视图</button>
+	                        </div>
+	                    `).join('')}</div>`;
+	                    showAnalysisPanel('推荐视图', html);
+	                })
+	                .catch(() => showAnalysisPanel('推荐视图', '<p>推荐视图加载失败，请稍后重试。</p>'));
+	        }
+
+	        function applyChartSuggestion(index) {
+	            const item = chartSuggestionsCache[index];
+	            if (!item) {
+	                return;
+	            }
+	            applyChartConfig({
+	                chartType: item.chart_type,
+	                dropData: {
+	                    x: item.x || null,
+	                    y: item.y || null,
+	                    color: item.color || null,
+	                    size: null,
+	                    opacity: null
+	                }
+	            }, true);
+	        }
+
+	        function loadCorrelationMatrix() {
+	            if (!requireActiveVersion()) {
+	                return;
+	            }
+	            showAnalysisPanel('相关矩阵', '<p>正在计算相关矩阵...</p>');
+	            fetch(`/api/v1/dataset-versions/${activeVersionId}/correlation`)
+	                .then(response => response.json())
+	                .then(data => {
+	                    if (!data.columns || !data.columns.length) {
+	                        showAnalysisPanel('相关矩阵', '<p>当前数据没有足够的数值字段。</p>');
+	                        return;
+	                    }
+	                    const header = `<tr><th></th>${data.columns.map(column => `<th title="${escapeHtml(column)}">${escapeHtml(column)}</th>`).join('')}</tr>`;
+	                    const rows = data.columns.map((column, rowIndex) => {
+	                        const cells = data.matrix[rowIndex].map(value => {
+	                            const numeric = Number(value);
+	                            const alpha = Number.isFinite(numeric) ? Math.min(0.92, Math.abs(numeric)) : 0;
+	                            const color = numeric >= 0 ? `rgba(37, 99, 235, ${alpha})` : `rgba(239, 68, 68, ${alpha})`;
+	                            return `<td style="background:${color};color:${alpha > 0.45 ? '#fff' : '#263856'}">${Number.isFinite(numeric) ? numeric.toFixed(2) : '-'}</td>`;
+	                        }).join('');
+	                        return `<tr><th title="${escapeHtml(column)}">${escapeHtml(column)}</th>${cells}</tr>`;
+	                    }).join('');
+	                    showAnalysisPanel('相关矩阵', `<table class="matrix-table">${header}${rows}</table>`);
+	                })
+	                .catch(() => showAnalysisPanel('相关矩阵', '<p>相关矩阵计算失败，请稍后重试。</p>'));
+	        }
+
+	        function loadOutliers() {
+	            if (!requireActiveVersion()) {
+	                return;
+	            }
+	            showAnalysisPanel('异常值检测', '<p>正在扫描异常值...</p>');
+	            fetch(`/api/v1/dataset-versions/${activeVersionId}/outliers`)
+	                .then(response => response.json())
+	                .then(data => {
+	                    const items = Array.isArray(data.items) ? data.items : [];
+	                    if (!items.length) {
+	                        showAnalysisPanel('异常值检测', '<p>没有检测到明显异常值。</p>');
+	                        return;
+	                    }
+	                    const html = `<div class="outlier-list">${items.map(item => `
+	                        <div class="outlier-item">
+	                            <strong>${escapeHtml(item.column)}</strong>
+	                            <div>异常数量：${escapeHtml(item.count)}</div>
+	                            <div>占比：${(Number(item.ratio || 0) * 100).toFixed(2)}%</div>
+	                            <div>范围：${Number(item.lower_bound).toFixed(3)} ~ ${Number(item.upper_bound).toFixed(3)}</div>
+	                        </div>
+	                    `).join('')}</div>`;
+	                    showAnalysisPanel('异常值检测', html);
+	                })
+	                .catch(() => showAnalysisPanel('异常值检测', '<p>异常值检测失败，请稍后重试。</p>'));
+	        }
 
 
         function renderBoxPlotChart(data, xField, yField) {
@@ -1249,13 +1586,17 @@
                 body: JSON.stringify({ ...dropData, chartType })
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showChartStatus(data.error, 'error');
-                    return;
-                }
+	            .then(data => {
+	                if (data.error) {
+	                    showChartStatus(data.error, 'error');
+	                    return;
+	                }
+	                if (!Array.isArray(data.plot_data) || data.plot_data.length === 0) {
+	                    showChartStatus('当前字段组合没有可绘制的数据。', 'error');
+	                    return;
+	                }
 
-                if (chartType === 'line') {
+	                if (chartType === 'line') {
                     renderLineChart(data.plot_data, data.x_axis, data.y_axis);
                 } else if (chartType === 'scatter') {
                     renderScatterChart(data.plot_data, data.x_axis, data.y_axis, data.color, data.size, data.opacity);
@@ -2061,17 +2402,24 @@
             fetch('/api/favorites', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    kind: 'chart',
-                    title,
-                    description: `统计分析图表配置：X=${dropData.x || '-'}，Y=${dropData.y || '-'}，颜色=${dropData.color || '-'}`,
-                    payload: {
-                        page: 'statistical-analysis.html',
-                        chartType,
-                        dropData
-                    }
-                })
-            })
+	                body: JSON.stringify({
+	                    kind: 'chart',
+	                    title,
+	                    description: `统计分析图表配置：X=${dropData.x || '-'}，Y=${dropData.y || '-'}，颜色=${dropData.color || '-'}`,
+	                    dataset_id: activeDatasetId || null,
+	                    group_name: '统计分析',
+	                    payload: {
+	                        page: 'statistical-analysis.html',
+	                        chartType,
+	                        dropData
+	                    },
+	                    snapshot: {
+	                        chartType,
+	                        dropData,
+	                        savedAt: new Date().toISOString()
+	                    }
+	                })
+	            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2084,10 +2432,11 @@
         }
 
         // 页面加载时默认显示可视化版面
-        window.onload = function () {
-            setDefaultTab(); // 设置默认版面
-            loadFieldMetadata();
-        };
+	        window.onload = function () {
+	            setDefaultTab(); // 设置默认版面
+	            loadFieldMetadata();
+	            restoreFavoriteChartIfNeeded();
+	        };
 
         function setDefaultTab() {
             // 设置默认显示的版块为可视化版面
@@ -2231,10 +2580,16 @@
                 topbar.innerHTML = `<span>Showing ${startRow + 1} to ${Math.min(endRow, totalRows)} of ${totalRows} results</span>`;
             }
 
-            // 滚动事件监听
-            dataContainer.onscroll = () => {
-                renderRows(dataContainer.scrollTop);
-            };
+	            let scrollFrame = null;
+	            dataContainer.onscroll = () => {
+	                if (scrollFrame) {
+	                    return;
+	                }
+	                scrollFrame = window.requestAnimationFrame(() => {
+	                    renderRows(dataContainer.scrollTop);
+	                    scrollFrame = null;
+	                });
+	            };
 
             // 初始渲染
             renderRows(0);
@@ -2335,6 +2690,7 @@
         });
 
     </script>
+<script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>
 
 </html>

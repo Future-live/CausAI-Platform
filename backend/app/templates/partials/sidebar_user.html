@@ -1,0 +1,78 @@
+{% set sidebar_user_name = user.username if user is defined and user else '用户' %}
+{% set sidebar_user_role = user.role if user is defined and user and user.role else 'member' %}
+{% set sidebar_user_email = user.email if user is defined and user and user.email else '已登录' %}
+<div class="user-info" title="{{ sidebar_user_name }}" role="button" tabindex="0" aria-expanded="false">
+    <div class="user-avatar">
+        <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
+        <span class="user-status-dot" aria-hidden="true"></span>
+    </div>
+    <div class="user-meta">
+        <span class="user-name">{{ sidebar_user_name }}</span>
+        <span class="user-role">{{ sidebar_user_role }} · 在线</span>
+    </div>
+    <i class="fas fa-chevron-up user-menu-indicator" aria-hidden="true"></i>
+    <div class="user-dropdown">
+        <a href="profile.html"><i class="fas fa-user-circle"></i><span>个人信息</span></a>
+        {% if show_sidebar_settings|default(false) %}
+        <a href="javascript:void(0);" id="settings-button" class="user-menu-settings"><i class="fas fa-sliders-h"></i><span>显示设置</span></a>
+        {% endif %}
+        <a href="logout.html"><i class="fas fa-sign-out-alt"></i><span>退出系统</span></a>
+        <div class="user-dropdown-foot">{{ sidebar_user_email }}</div>
+    </div>
+</div>
+<script>
+    (function () {
+        if (window.__causaiSidebarUserReady) {
+            return;
+        }
+        window.__causaiSidebarUserReady = true;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const userInfo = document.querySelector('.user-info');
+            if (!userInfo) {
+                return;
+            }
+            const sidebar = userInfo.closest('.sidebar');
+            const dropdown = userInfo.querySelector('.user-dropdown');
+
+            function setUserMenuOpen(open) {
+                userInfo.classList.toggle('is-open', open);
+                userInfo.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (sidebar) {
+                    sidebar.classList.toggle('menu-open', open);
+                }
+            }
+
+            userInfo.addEventListener('click', function (event) {
+                if (event.target.closest('.user-dropdown a')) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                setUserMenuOpen(!userInfo.classList.contains('is-open'));
+            });
+
+            userInfo.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setUserMenuOpen(!userInfo.classList.contains('is-open'));
+                }
+                if (event.key === 'Escape') {
+                    setUserMenuOpen(false);
+                }
+            });
+
+            if (dropdown) {
+                dropdown.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+            }
+
+            document.addEventListener('click', function (event) {
+                if (!userInfo.contains(event.target)) {
+                    setUserMenuOpen(false);
+                }
+            });
+        });
+    })();
+</script>

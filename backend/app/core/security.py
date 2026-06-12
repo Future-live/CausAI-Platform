@@ -44,7 +44,7 @@ def decode_token(token: str, expected_type: str, settings: Settings) -> str:
     return str(payload["sub"])
 
 
-def set_auth_cookies(response: Response, user_id: str, settings: Settings) -> None:
+def create_auth_tokens(user_id: str, settings: Settings) -> dict[str, str]:
     access_token = create_token(
         user_id,
         "access",
@@ -57,9 +57,18 @@ def set_auth_cookies(response: Response, user_id: str, settings: Settings) -> No
         timedelta(days=settings.jwt_refresh_token_days),
         settings,
     )
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+def set_auth_cookies(response: Response, user_id: str, settings: Settings) -> dict[str, str]:
+    tokens = create_auth_tokens(user_id, settings)
     response.set_cookie(
         settings.access_cookie_name,
-        access_token,
+        tokens["access_token"],
         httponly=True,
         secure=settings.secure_cookies,
         samesite="lax",
@@ -68,13 +77,14 @@ def set_auth_cookies(response: Response, user_id: str, settings: Settings) -> No
     )
     response.set_cookie(
         settings.refresh_cookie_name,
-        refresh_token,
+        tokens["refresh_token"],
         httponly=True,
         secure=settings.secure_cookies,
         samesite="lax",
         max_age=settings.jwt_refresh_token_days * 24 * 60 * 60,
         path="/",
     )
+    return tokens
 
 
 def clear_auth_cookies(response: Response, settings: Settings) -> None:

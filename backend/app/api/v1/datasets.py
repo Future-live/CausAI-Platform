@@ -17,7 +17,18 @@ from app.schemas.dataset import (
     DatasetVersionRead,
     FilterRequest,
     PrepareRequest,
+    SupportedDatasetFormat,
 )
+from app.schemas.statistics import (
+    ChartSuggestion,
+    CorrelationResponse,
+    GroupByRequest,
+    GroupByResponse,
+    OutlierResponse,
+    StatisticalTestRequest,
+    StatisticalTestResponse,
+)
+from app.services.dataframe import SUPPORTED_DATASET_FORMATS
 from app.services.datasets import (
     create_dataset,
     create_filtered_version,
@@ -32,8 +43,20 @@ from app.services.datasets import (
     update_column_visibility,
 )
 from app.services.serialization import dataset_read
+from app.services.statistics import (
+    chart_suggestions,
+    correlation_matrix,
+    groupby_stats,
+    outliers,
+    statistical_test,
+)
 
 router = APIRouter(tags=["datasets"])
+
+
+@router.get("/datasets/supported-formats", response_model=list[SupportedDatasetFormat])
+def supported_formats() -> list[dict[str, str]]:
+    return SUPPORTED_DATASET_FORMATS
 
 
 @router.post("/datasets", response_model=DatasetRead)
@@ -102,6 +125,51 @@ def update_columns(
 @router.get("/dataset-versions/{version_id}/statistics")
 def statistics(version_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return get_statistics(db, user, version_id)
+
+
+@router.get("/dataset-versions/{version_id}/chart-suggestions", response_model=list[ChartSuggestion])
+def suggestions(version_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return chart_suggestions(db, user, version_id)
+
+
+@router.get("/dataset-versions/{version_id}/correlation", response_model=CorrelationResponse)
+def correlation(
+    version_id: str,
+    method: str = Query(default="pearson", pattern="^(pearson|spearman|kendall)$"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return correlation_matrix(db, user, version_id, method)
+
+
+@router.post("/dataset-versions/{version_id}/groupby", response_model=GroupByResponse)
+def groupby(
+    version_id: str,
+    payload: GroupByRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return groupby_stats(db, user, version_id, payload)
+
+
+@router.post("/dataset-versions/{version_id}/tests", response_model=StatisticalTestResponse)
+def tests(
+    version_id: str,
+    payload: StatisticalTestRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return statistical_test(db, user, version_id, payload)
+
+
+@router.get("/dataset-versions/{version_id}/outliers", response_model=OutlierResponse)
+def outlier_detection(
+    version_id: str,
+    columns: list[str] | None = Query(default=None),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return outliers(db, user, version_id, columns)
 
 
 @router.get("/dataset-versions/{version_id}/columns/{column}/distribution", response_model=ColumnDistribution)

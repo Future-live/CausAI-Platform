@@ -56,6 +56,40 @@
             flex-wrap: wrap;
         }
 
+        .favorites-filterbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            background: #fff;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(39, 60, 117, 0.05);
+        }
+
+        .favorites-filterbar input,
+        .favorites-filterbar select {
+            height: 34px;
+            padding: 0 10px;
+            border: 1px solid #d7e0f1;
+            border-radius: 6px;
+            color: #27364f;
+            background: #fbfcff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .favorites-filterbar input {
+            width: min(280px, 42vw);
+        }
+
+        .favorites-filterbar input:focus,
+        .favorites-filterbar select:focus {
+            border-color: #273c75;
+            box-shadow: 0 0 0 3px rgba(39, 60, 117, 0.1);
+        }
+
         .favorites-toolbar button,
         .favorite-card button {
             border: none;
@@ -144,6 +178,25 @@
             gap: 8px;
         }
 
+        .favorite-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .favorite-preview span {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 4px 7px;
+            border-radius: 5px;
+            color: #43546d;
+            background: #f5f7fb;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .favorites-empty {
             min-height: 360px;
             display: grid;
@@ -172,10 +225,7 @@
         <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
         <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
         <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
-        <div class="user-info" onclick="location.href='profile.html'">
-            <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
-            <span>{{ user.username }}</span>
-        </div>
+        {% include 'partials/sidebar_user.html' %}
     </div>
     <main class="favorites-page">
         <section class="favorites-hero">
@@ -188,19 +238,77 @@
                 <button class="secondary" onclick="location.href='big-model-analysis.html'"><i class="fas fa-database"></i> 语义分析</button>
             </div>
         </section>
+        <section class="favorites-filterbar">
+            <input id="favorite-keyword" type="search" placeholder="搜索标题、说明或字段">
+            <select id="favorite-kind">
+                <option value="">全部类型</option>
+                <option value="chart">统计图表</option>
+                <option value="causal_job">因果任务</option>
+                <option value="semantic_report">语义报告</option>
+                <option value="dataset_view">数据视图</option>
+            </select>
+            <select id="favorite-sort">
+                <option value="-created_at">最近收藏</option>
+                <option value="title">标题 A-Z</option>
+                <option value="sort_order">自定义排序</option>
+            </select>
+        </section>
         <section id="favorites-content" class="favorites-grid"></section>
     </main>
 </div>
 <script>
     const kindConfig = {
         chart: { icon: 'fa-chart-line', label: '统计图表', url: 'statistical-analysis.html' },
+        causal_job: { icon: 'fa-brain', label: '因果任务', url: 'causal-analysis.html' },
+        semantic_report: { icon: 'fa-project-diagram', label: '语义报告', url: 'big-model-analysis.html' },
+        dataset_view: { icon: 'fa-table', label: '数据视图', url: 'data-preparation.html' },
         semantic: { icon: 'fa-project-diagram', label: '语义因果', url: 'big-model-analysis.html' },
         note: { icon: 'fa-sticky-note', label: '记录', url: 'index.html' }
     };
 
+    let allFavorites = [];
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    }
+
     function formatTime(value) {
         if (!value) return '-';
         return new Date(value).toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function favoriteChartConfig(item) {
+        const payload = item.payload || {};
+        const snapshot = item.snapshot || {};
+        if (payload.chartType || payload.dropData) {
+            return payload;
+        }
+        if (snapshot.chartType || snapshot.dropData) {
+            return snapshot;
+        }
+        return null;
+    }
+
+    function renderFavoritePreview(item) {
+        const config = favoriteChartConfig(item);
+        if (!config) {
+            return '';
+        }
+        const dropData = config.dropData || {};
+        return `
+            <div class="favorite-preview">
+                <span>${escapeHtml(config.chartType || 'chart')}</span>
+                ${dropData.x ? `<span>X: ${escapeHtml(dropData.x)}</span>` : ''}
+                ${dropData.y ? `<span>Y: ${escapeHtml(dropData.y)}</span>` : ''}
+                ${dropData.color ? `<span>颜色: ${escapeHtml(dropData.color)}</span>` : ''}
+            </div>
+        `;
     }
 
     function renderFavorites(items) {
@@ -219,26 +327,63 @@
         container.className = 'favorites-grid';
         container.innerHTML = items.map(item => {
             const config = kindConfig[item.kind] || kindConfig.note;
+            const groupName = item.group_name ? `<span>${escapeHtml(item.group_name)}</span>` : '';
             return `
                 <article class="favorite-card" data-id="${item.id}">
                     <header>
                         <div class="favorite-icon"><i class="fas ${config.icon}"></i></div>
                         <div>
-                            <h3>${item.title}</h3>
-                            <p>${item.description || '无描述'}</p>
+                            <h3>${escapeHtml(item.title)}</h3>
+                            <p>${escapeHtml(item.description || '无描述')}</p>
                         </div>
                     </header>
+                    ${renderFavoritePreview(item)}
                     <div class="favorite-meta">
                         <span>${config.label}</span>
-                        <span>${formatTime(item.created_at)}</span>
+                        ${groupName}
+                        <span>${escapeHtml(formatTime(item.created_at))}</span>
                     </div>
                     <div class="favorite-actions">
-                        <button class="secondary" onclick="location.href='${config.url}'">打开</button>
+                        <button class="secondary" onclick="openFavorite('${item.id}')">打开</button>
                         <button onclick="deleteFavorite('${item.id}')">删除</button>
                     </div>
                 </article>
             `;
         }).join('');
+    }
+
+    function applyFavoriteFilters() {
+        const keyword = document.getElementById('favorite-keyword').value.trim().toLowerCase();
+        const kind = document.getElementById('favorite-kind').value;
+        const sort = document.getElementById('favorite-sort').value;
+        let items = [...allFavorites];
+        if (kind) {
+            items = items.filter(item => item.kind === kind);
+        }
+        if (keyword) {
+            items = items.filter(item => {
+                const config = favoriteChartConfig(item);
+                const dropData = config?.dropData || {};
+                return [
+                    item.title,
+                    item.description,
+                    item.group_name,
+                    dropData.x,
+                    dropData.y,
+                    dropData.color
+                ].some(value => String(value || '').toLowerCase().includes(keyword));
+            });
+        }
+        items.sort((a, b) => {
+            if (sort === 'title') {
+                return String(a.title || '').localeCompare(String(b.title || ''), 'zh-CN');
+            }
+            if (sort === 'sort_order') {
+                return (a.sort_order || 0) - (b.sort_order || 0);
+            }
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        });
+        renderFavorites(items);
     }
 
     function loadFavorites() {
@@ -247,10 +392,25 @@
         container.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i><p>正在加载收藏...</p></div>';
         fetch('/api/favorites')
             .then(response => response.json())
-            .then(renderFavorites)
+            .then(items => {
+                allFavorites = Array.isArray(items) ? items : [];
+                applyFavoriteFilters();
+            })
             .catch(() => {
                 container.innerHTML = '<div><i class="fas fa-exclamation-circle"></i><p>收藏加载失败，请稍后重试。</p></div>';
             });
+    }
+
+    function openFavorite(id) {
+        const item = allFavorites.find(entry => entry.id === id);
+        if (!item) {
+            return;
+        }
+        const config = kindConfig[item.kind] || kindConfig.note;
+        if (item.kind === 'chart') {
+            sessionStorage.setItem('causai:favoriteChart', JSON.stringify(item));
+        }
+        location.href = config.url;
     }
 
     function deleteFavorite(id) {
@@ -269,7 +429,11 @@
             .catch(() => alert('删除失败，请稍后重试'));
     }
 
+    document.getElementById('favorite-keyword').addEventListener('input', applyFavoriteFilters);
+    document.getElementById('favorite-kind').addEventListener('change', applyFavoriteFilters);
+    document.getElementById('favorite-sort').addEventListener('change', applyFavoriteFilters);
     loadFavorites();
 </script>
+<script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>
 </html>

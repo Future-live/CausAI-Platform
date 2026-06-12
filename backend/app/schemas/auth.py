@@ -12,6 +12,10 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(min_length=1)
+
+
 class UserRead(BaseModel):
     id: str
     username: str
@@ -23,3 +27,6 @@ class UserRead(BaseModel):
 
 class AuthResponse(BaseModel):
     user: UserRead
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"

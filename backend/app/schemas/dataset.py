@@ -41,6 +41,12 @@ class DatasetListItem(BaseModel):
     latest_version_id: str | None = None
 
 
+class SupportedDatasetFormat(BaseModel):
+    extension: str
+    label: str
+    description: str
+
+
 class PrepareRequest(BaseModel):
     fill_na: Literal["none", "mean", "median", "mode"] = "none"
     drop_na: bool = False

@@ -121,14 +121,7 @@
             <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
             <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
             <a href="favorites.html" class="restricted"><i class="fas fa-star"></i><span>收藏夹</span></a>
-            <div class="user-info" onclick="toggleDropdown()" onmouseleave="hideDropdown()">
-                <img src="{{ url_for('static', filename='images/admin.png') }}" alt="User">
-                <span>{{ session.username if session.username else '用户' }}</span>
-                <div class="user-dropdown">
-                    <a href="profile.html">个人信息</a>
-                    <a href="/logout">退出系统</a>
-                </div>
-            </div>
+            {% include 'partials/sidebar_user.html' %}
         </div>
         <div class="index_content">
             <!-- 背景图片 -->
@@ -195,5 +188,6 @@
             dropdown.style.display = 'none';
         }
     </script>
+<script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>
 </html>

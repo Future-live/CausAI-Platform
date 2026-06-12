@@ -6,7 +6,15 @@ from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.causal import CausalJobCreate, CausalJobRead, CausalJobResult, EffectRequest, EffectResponse
-from app.services.causal import calculate_effect, create_job, get_job, get_job_result, list_jobs
+from app.services.causal import (
+    calculate_effect,
+    cancel_job,
+    create_job,
+    get_job,
+    get_job_result,
+    list_jobs,
+    retry_job,
+)
 
 router = APIRouter(prefix="/causal", tags=["causal"])
 
@@ -34,6 +42,22 @@ def jobs(
 @router.get("/jobs/{job_id}", response_model=CausalJobRead)
 def job_detail(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return get_job(db, user, job_id)
+
+
+@router.post("/jobs/{job_id}/retry", response_model=CausalJobRead)
+def retry(
+    job_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    user: User = Depends(get_current_user),
+):
+    return retry_job(db, settings, user, job_id, background_tasks)
+
+
+@router.post("/jobs/{job_id}/cancel", response_model=CausalJobRead)
+def cancel(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return cancel_job(db, user, job_id)
 
 
 @router.get("/jobs/{job_id}/result", response_model=CausalJobResult)

@@ -29,7 +29,7 @@ from app.schemas.dataset import (
 )
 from app.services.auth import authenticate_user, register_user
 from app.services.causal import calculate_effect, get_job_result, run_job
-from app.services.dataframe import read_csv, records
+from app.services.dataframe import read_dataframe, records
 from app.services.datasets import (
     create_dataset,
     create_filtered_version,
@@ -163,7 +163,7 @@ def _current_dataframe(request: Request, db: Session, user: User) -> tuple[Datas
     _, version = _current_dataset_version(request, db, user)
     if not version:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="请先上传或选择数据文件")
-    return version, read_csv(version.storage_path)
+    return version, read_dataframe(version.storage_path)
 
 
 @router.get("/", name="log_in")
@@ -325,9 +325,16 @@ def statistical_analysis(request: Request, db: Session = Depends(get_db), settin
     user = _page_user(request, db, settings)
     if isinstance(user, RedirectResponse):
         return user
-    _, version = _current_dataset_version(request, db, user)
+    dataset, version = _current_dataset_version(request, db, user)
     columns = [column["name"] for column in version.columns_json if column.get("enabled", True)] if version else []
-    return _render(request, "statistical-analysis.html", columns=columns, user=user)
+    return _render(
+        request,
+        "statistical-analysis.html",
+        columns=columns,
+        user=user,
+        dataset_id=dataset.id if dataset else "",
+        version_id=version.id if version else "",
+    )
 
 
 @router.api_route("/causal-analysis.html", methods=["GET", "POST"])
@@ -407,7 +414,11 @@ def list_favorites(request: Request, db: Session = Depends(get_db), settings: Se
             "kind": item.kind,
             "title": item.title,
             "description": item.description,
+            "dataset_id": item.dataset_id,
+            "group_name": item.group_name,
+            "sort_order": item.sort_order,
             "payload": item.payload_json,
+            "snapshot": item.snapshot_json,
             "created_at": item.created_at.isoformat() if item.created_at else None,
         }
         for item in items
@@ -422,12 +433,23 @@ async def create_favorite(request: Request, db: Session = Depends(get_db), setti
     kind = str(payload.get("kind") or "note").strip()
     if not title:
         return _json_error("收藏标题不能为空")
+    dataset, _ = _current_dataset_version(request, db, user)
+    payload_json = payload.get("payload") if isinstance(payload.get("payload"), dict) else {}
+    snapshot_json = payload.get("snapshot") if isinstance(payload.get("snapshot"), dict) else {}
+    try:
+        sort_order = int(payload.get("sort_order") or 0)
+    except (TypeError, ValueError):
+        sort_order = 0
     item = FavoriteItem(
         owner_id=user.id,
         kind=kind[:40],
         title=title[:160],
         description=str(payload.get("description") or "").strip() or None,
-        payload_json=payload.get("payload") if isinstance(payload.get("payload"), dict) else {},
+        dataset_id=payload.get("dataset_id") or (dataset.id if dataset else None),
+        group_name=str(payload.get("group_name") or "").strip() or None,
+        sort_order=sort_order,
+        payload_json=payload_json,
+        snapshot_json=snapshot_json or payload_json,
     )
     db.add(item)
     db.commit()

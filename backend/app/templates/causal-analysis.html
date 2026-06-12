@@ -344,7 +344,7 @@
         <a href="causal-analysis.html"><i class="fas fa-brain"></i><span>数据驱动因果</span></a>
         <a href="big-model-analysis.html"><i class="fas fa-database"></i><span>语义理解因果</span></a>
         <a href="favorites.html"><i class="fas fa-star"></i><span>收藏夹</span></a>
-        <a id="settings-button" href="javascript:void(0);"><i class="fas fa-cog"></i></a>
+        {% include 'partials/sidebar_user.html' %}
     </div>
     <div class="content">
         <h1>数据驱动因果分析</h1>
@@ -848,5 +848,6 @@
 
 </script>
 
+<script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>
 </html>

@@ -21,7 +21,13 @@ from app.schemas.dataset import (
     PrepareRequest,
     StatisticItem,
 )
-from app.services.dataframe import profile_columns, read_csv, records
+from app.services.dataframe import (
+    SUPPORTED_DATASET_EXTENSIONS,
+    is_supported_dataset_file,
+    profile_columns,
+    read_dataframe,
+    records,
+)
 from app.services.serialization import dataset_read, version_read
 
 
@@ -33,8 +39,12 @@ def _user_storage(settings: Settings, user_id: str) -> Path:
 
 def _safe_upload_path(settings: Settings, user_id: str, filename: str) -> tuple[str, Path]:
     safe = secure_filename(filename) or "dataset.csv"
-    if not safe.lower().endswith(".csv"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="仅支持 CSV 文件")
+    if not is_supported_dataset_file(safe):
+        supported = ", ".join(sorted(SUPPORTED_DATASET_EXTENSIONS))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"不支持的文件类型。当前支持: {supported}",
+        )
     dataset_dir = _user_storage(settings, user_id) / "datasets" / str(uuid4())
     dataset_dir.mkdir(parents=True, exist_ok=True)
     return safe, dataset_dir / f"original_{safe}"
@@ -69,10 +79,10 @@ def create_dataset(db: Session, settings: Settings, user: User, upload: UploadFi
             buffer.write(chunk)
 
     try:
-        df = read_csv(destination)
+        df = read_dataframe(destination)
     except Exception as exc:
         destination.unlink(missing_ok=True)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"CSV 解析失败: {exc}") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"数据文件解析失败: {exc}") from exc
 
     columns = profile_columns(df)
     dataset = Dataset(
@@ -108,7 +118,7 @@ def list_datasets(db: Session, user: User) -> list[DatasetListItem]:
     ).all()
     items: list[DatasetListItem] = []
     for dataset in datasets:
-        latest = dataset.versions[-1] if dataset.versions else None
+        latest = max(dataset.versions, key=lambda version: version.created_at) if dataset.versions else None
         items.append(
             DatasetListItem(
                 id=dataset.id,
@@ -140,7 +150,7 @@ def get_dataset_read(db: Session, user: User, dataset_id: str):
 
 def get_rows(db: Session, user: User, version_id: str, limit: int, offset: int):
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     total = len(df)
     return {
         "rows": records(df.iloc[offset : offset + limit]),
@@ -158,7 +168,7 @@ def create_prepared_version(
     payload: PrepareRequest,
 ):
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     operations: list[dict] = []
 
     if payload.drop_na:
@@ -215,7 +225,7 @@ def create_filtered_version(
     payload: FilterRequest,
 ):
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     enabled = _enabled_columns(version)
     operations: list[dict] = []
 
@@ -272,7 +282,7 @@ def update_column_visibility(
     payload: ColumnVisibilityRequest,
 ):
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     missing = set(payload.enabled_columns) - set(df.columns)
     if missing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"字段不存在: {', '.join(missing)}")
@@ -285,7 +295,7 @@ def update_column_visibility(
 
 def get_statistics(db: Session, user: User, version_id: str) -> list[StatisticItem]:
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     enabled = _enabled_columns(version)
     stats: list[StatisticItem] = []
     for column in df.columns:
@@ -318,7 +328,7 @@ def get_statistics(db: Session, user: User, version_id: str) -> list[StatisticIt
 
 def get_chart_data(db: Session, user: User, version_id: str, payload: ChartDataRequest) -> ChartDataResponse:
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     selected = [payload.x, payload.y, payload.color, payload.size, payload.opacity]
     columns = [column for column in selected if column]
     missing = [column for column in columns if column not in df.columns]
@@ -339,7 +349,7 @@ def get_chart_data(db: Session, user: User, version_id: str, payload: ChartDataR
 
 def get_column_distribution(db: Session, user: User, version_id: str, column: str) -> ColumnDistribution:
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     if column not in df.columns:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="字段不存在")
     series = df[column].dropna()
@@ -365,7 +375,7 @@ def get_column_distribution(db: Session, user: User, version_id: str, column: st
 
 def get_column_values(db: Session, user: User, version_id: str, column: str, limit: int = 500) -> ColumnValues:
     version = _check_version_owner(db, version_id, user)
-    df = read_csv(version.storage_path)
+    df = read_dataframe(version.storage_path)
     if column not in df.columns:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="字段不存在")
     values = df[column].dropna().drop_duplicates().head(limit).tolist()

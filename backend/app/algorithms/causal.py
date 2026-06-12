@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from app.schemas.causal import BackgroundEdge, CausalEdge
+from app.services.dataframe import read_dataframe
 
 
 def _normalise_endpoint(value: object) -> str:
@@ -27,13 +28,14 @@ def run_pc(
     data_path: str | Path,
     variables: list[str],
     background_edges: list[BackgroundEdge],
+    algorithm_params: dict | None = None,
 ) -> list[CausalEdge]:
     from causallearn.graph.GraphNode import GraphNode
     from causallearn.search.ConstraintBased.PC import pc
     from causallearn.utils.cit import fisherz
     from causallearn.utils.PCUtils.BackgroundKnowledge import BackgroundKnowledge
 
-    df = pd.read_csv(data_path, encoding="utf-8-sig", usecols=variables)
+    df = read_dataframe(data_path, usecols=variables)
     _validate_variables(df, variables)
     numeric_df = df.apply(pd.to_numeric, errors="coerce").dropna()
     if numeric_df.empty:
@@ -43,10 +45,12 @@ def run_pc(
     for edge in background_edges:
         background.add_required_by_node(GraphNode(edge.source), GraphNode(edge.target))
 
+    params = algorithm_params or {}
+    alpha = float(params.get("alpha", 0.05))
     result = pc(
         data=numeric_df.values,
         fisherz=fisherz,
-        alpha=0.05,
+        alpha=alpha,
         background_knowledge=background,
         node_names=list(numeric_df.columns),
     )
@@ -67,10 +71,11 @@ def run_gies(
     data_path: str | Path,
     variables: list[str],
     background_edges: list[BackgroundEdge],
+    algorithm_params: dict | None = None,
 ) -> list[CausalEdge]:
     from gies import fit_bic
 
-    df = pd.read_csv(data_path, encoding="utf-8-sig", usecols=variables)
+    df = read_dataframe(data_path, usecols=variables)
     _validate_variables(df, variables)
     numeric_df = df.apply(pd.to_numeric, errors="coerce").dropna()
     if numeric_df.empty:
@@ -98,11 +103,12 @@ def run_algorithm(
     data_path: str | Path,
     variables: list[str],
     background_edges: list[BackgroundEdge],
+    algorithm_params: dict | None = None,
 ) -> list[CausalEdge]:
     if algorithm == "pc":
-        return run_pc(data_path, variables, background_edges)
+        return run_pc(data_path, variables, background_edges, algorithm_params)
     if algorithm == "gies":
-        return run_gies(data_path, variables, background_edges)
+        return run_gies(data_path, variables, background_edges, algorithm_params)
     raise ValueError(f"不支持的算法: {algorithm}")
 
 

@@ -25,7 +25,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret, same_site=
 
 app.include_router(api_router, prefix=settings.api_prefix)
 app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "static"), name="static")
-app.include_router(legacy_router)
+app.include_router(legacy_router, include_in_schema=False)
 
 
 @app.on_event("startup")

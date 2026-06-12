@@ -45,8 +45,12 @@ def job_read(job: AnalysisJob) -> CausalJobRead:
         algorithm=job.algorithm,
         selected_variables=list(job.selected_variables_json or []),
         background_edges=[BackgroundEdge(**edge) for edge in job.background_edges_json or []],
+        algorithm_params=dict(job.algorithm_params_json or {}),
         status=job.status,
+        progress=int(job.progress or 0),
+        worker_id=job.worker_id,
         error_message=job.error_message,
         created_at=iso(job.created_at) or "",
+        started_at=iso(job.started_at),
         finished_at=iso(job.finished_at),
     )

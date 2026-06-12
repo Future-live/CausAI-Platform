@@ -19,6 +19,7 @@ class CausalJobCreate(BaseModel):
     algorithm: Literal["pc", "gies"]
     selected_variables: list[str] = Field(min_length=2)
     background_edges: list[BackgroundEdge] = Field(default_factory=list)
+    algorithm_params: dict = Field(default_factory=dict)
 
 
 class CausalEdge(BaseModel):
@@ -34,9 +35,13 @@ class CausalJobRead(BaseModel):
     algorithm: str
     selected_variables: list[str]
     background_edges: list[BackgroundEdge]
+    algorithm_params: dict = Field(default_factory=dict)
     status: str
+    progress: int = 0
+    worker_id: str | None = None
     error_message: str | None = None
     created_at: str
+    started_at: str | None = None
     finished_at: str | None = None
 
 
