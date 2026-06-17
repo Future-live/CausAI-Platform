@@ -456,7 +456,96 @@ Content-Type: application/json
 
 ## 语义因果接口
 
-语义接口依赖 `DEEPSEEK_API_KEY`。未配置时接口会返回明确的未配置提示，不会导致系统崩溃。
+语义接口默认读取服务端环境变量 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL`。也可以在请求体中传入临时 `llm_config`，用于前端“模型连接”面板的请求级配置。临时配置不会写入数据库。
+
+```json
+{
+  "llm_config": {
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "api_key": "sk-..."
+  }
+}
+```
+
+未配置 API Key 时，接口会返回本地规则兜底结果或明确的未配置提示，不会导致系统崩溃。
+
+### 账号级模型配置
+
+前端“模型连接”面板勾选“保存到当前账号”后会调用以下接口。完整 API Key 只在保存时提交；读取时只返回 `has_api_key` 和 `masked_api_key`，不会回传完整密钥。
+
+```http
+GET /api/v1/llm/config
+PUT /api/v1/llm/config
+DELETE /api/v1/llm/config
+Authorization: Bearer <access_token>
+```
+
+保存配置：
+
+```json
+{
+  "base_url": "https://api.deepseek.com/v1",
+  "model": "deepseek-chat",
+  "api_key": "sk-...",
+  "domain_hint": "教育数据分析"
+}
+```
+
+读取配置：
+
+```json
+{
+  "saved": true,
+  "base_url": "https://api.deepseek.com/v1",
+  "model": "deepseek-chat",
+  "domain_hint": "教育数据分析",
+  "has_api_key": true,
+  "masked_api_key": "sk-****abcd",
+  "updated_at": "2026-06-15T10:00:00"
+}
+```
+
+语义接口请求体中的 `llm_config.api_key` 为空时，后端会自动复用当前账号保存的 API Key。
+
+### 字段语义画像
+
+```http
+POST /api/v1/llm/semantic-profile
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+```json
+{
+  "dataset_version_id": "version-id",
+  "llm_config": {
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "api_key": "sk-..."
+  }
+}
+```
+
+返回字段业务含义、语义角色、样例证据和数据质量提醒：
+
+```json
+{
+  "configured": true,
+  "summary": "该数据集描述了个体特征和结果变量。",
+  "columns": [
+    {
+      "name": "score",
+      "semantic_type": "numeric",
+      "inferred_role": "outcome",
+      "description": "可能表示结果评分。",
+      "evidence": ["字段名包含 score"],
+      "quality_warnings": []
+    }
+  ],
+  "warnings": []
+}
+```
 
 ### 语义辅助定向
 
@@ -468,9 +557,16 @@ Content-Type: application/json
 
 ```json
 {
-  "job_id": "job-id"
+  "job_id": "job-id",
+  "llm_config": {
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "api_key": "sk-..."
+  }
 }
 ```
+
+返回中包含 `orientation_evidence` 和 `validation`，用于展示每条语义定向边的置信度、依据，以及 DAG/未知边/环检测结果。
 
 ### 后门调整集
 
@@ -487,9 +583,16 @@ Content-Type: application/json
     {"source": "Length", "target": "Rings"}
   ],
   "cause_var": "Length",
-  "effect_var": "Rings"
+  "effect_var": "Rings",
+  "llm_config": {
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "api_key": "sk-..."
+  }
 }
 ```
+
+未配置模型时会使用本地图结构规则兜底：取结果变量的直接父节点并排除处理变量。配置模型后会要求模型结合后门准则给出 `rationale` 和 `evidence`。
 
 ### 大模型结果解释
 
@@ -502,7 +605,13 @@ Content-Type: application/json
 ```json
 {
   "job_id": "job-id",
-  "question": "请解释这个因果图中最重要的变量关系"
+  "prompt": "请解释这个因果图中最重要的变量关系",
+  "field_profiles": [],
+  "llm_config": {
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "api_key": "sk-..."
+  }
 }
 ```
 

@@ -648,14 +648,6 @@
     <script>
         // 你的 JavaScript 代码
         
-        document.addEventListener('click', function (event) {
-            var userButton = document.querySelector('.user-info');
-            var userDropdown = document.querySelector('.user-dropdown');
-
-            if (userButton && userDropdown && !userButton.contains(event.target)) {
-                userDropdown.style.display = 'none';
-            }
-        });
         function updateUseColumn(column, isChecked) {
             fetch('/update_use_column', {
                 method: 'POST',
@@ -673,15 +665,6 @@
                 }
             })
             .catch(() => alert('字段状态更新失败，请稍后重试'));
-        }
-        function toggleDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function hideDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = 'none';
         }
         function selectFile(filename) {
             fetch('/set_session', {

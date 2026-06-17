@@ -34,13 +34,45 @@
             }
             const sidebar = userInfo.closest('.sidebar');
             const dropdown = userInfo.querySelector('.user-dropdown');
+            let sidebarCloseTimer = null;
+
+            function setSidebarHover(open) {
+                if (!sidebar) {
+                    return;
+                }
+                if (sidebarCloseTimer) {
+                    window.clearTimeout(sidebarCloseTimer);
+                    sidebarCloseTimer = null;
+                }
+                if (open) {
+                    sidebar.classList.add('is-hovered');
+                    return;
+                }
+                sidebarCloseTimer = window.setTimeout(function () {
+                    if (!sidebar.matches(':hover') && !sidebar.classList.contains('menu-open')) {
+                        sidebar.classList.remove('is-hovered');
+                    }
+                }, 150);
+            }
 
             function setUserMenuOpen(open) {
                 userInfo.classList.toggle('is-open', open);
                 userInfo.setAttribute('aria-expanded', open ? 'true' : 'false');
                 if (sidebar) {
                     sidebar.classList.toggle('menu-open', open);
+                    if (open) {
+                        sidebar.classList.add('is-hovered');
+                    }
                 }
+            }
+
+            if (sidebar) {
+                sidebar.addEventListener('pointerenter', function () {
+                    setSidebarHover(true);
+                });
+                sidebar.addEventListener('pointerleave', function () {
+                    setSidebarHover(false);
+                });
             }
 
             userInfo.addEventListener('click', function (event) {

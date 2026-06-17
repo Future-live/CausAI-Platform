@@ -415,6 +415,444 @@
             margin-top: 12px;
         }
 
+        .llm-connection-card,
+        .semantic-profile-card,
+        .semantic-validation-card {
+            margin-bottom: 14px;
+            padding: 14px;
+            border: 1px solid #dfe7f3;
+            border-radius: 9px;
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(39, 60, 117, 0.07);
+        }
+
+        .llm-card-title,
+        .profile-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #22304a;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .llm-status-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            color: #6b7890;
+            background: #eef3fb;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .llm-status-pill.ready {
+            color: #166044;
+            background: #dff8eb;
+        }
+
+        .llm-form-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 10px;
+        }
+
+        .llm-form-grid label {
+            display: grid;
+            gap: 5px;
+            min-width: 0;
+            color: #526178;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .llm-form-grid input {
+            width: 100%;
+            box-sizing: border-box;
+            height: 34px;
+            padding: 0 10px;
+            border: 1px solid #cfd8e8;
+            border-radius: 7px;
+            color: #25324a;
+            background: #fbfdff;
+            font-size: 13px;
+            outline: none;
+            min-width: 0;
+        }
+
+        .llm-form-grid input:focus {
+            border-color: #273c75;
+            box-shadow: 0 0 0 3px rgba(39, 60, 117, 0.1);
+        }
+
+        .llm-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .llm-actions small {
+            color: #718096;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .llm-save-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 8px 10px;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .llm-account-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #2a3850;
+            font-size: 12px;
+            font-weight: 900;
+            user-select: none;
+        }
+
+        .llm-account-check input {
+            width: 16px;
+            height: 16px;
+            accent-color: #273c75;
+        }
+
+        .llm-account-meta {
+            display: grid;
+            gap: 3px;
+            justify-items: end;
+            color: #718096;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: right;
+        }
+
+        .llm-danger-link {
+            display: none;
+            border: 0;
+            background: transparent !important;
+            color: #9a3412 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .llm-danger-link.visible {
+            display: inline-flex;
+        }
+
+        .llm-actions button,
+        .semantic-profile-card button {
+            position: static;
+            padding: 7px 11px;
+            border-radius: 7px;
+            background: #273c75;
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 6px 14px rgba(39, 60, 117, 0.14);
+        }
+
+        .profile-summary {
+            margin: 0 0 10px;
+            color: #4b5870;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .semantic-profile-list {
+            display: grid;
+            gap: 8px;
+            max-height: 190px;
+            overflow: auto;
+            padding-right: 2px;
+            margin-top: 8px;
+        }
+
+        .semantic-profile-item {
+            display: grid;
+            gap: 5px;
+            padding: 10px;
+            border: 1px solid #e1e8f3;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .profile-item-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: #22304a;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .role-badge {
+            flex: 0 0 auto;
+            padding: 2px 7px;
+            border-radius: 999px;
+            color: #273c75;
+            background: #e8eefc;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .profile-desc,
+        .semantic-evidence {
+            color: #60718d;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .semantic-warning {
+            margin-top: 6px;
+            margin-bottom: 6px;
+            padding: 7px 9px;
+            border-radius: 7px;
+            color: #7c4b00;
+            background: #fff7df;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .semantic-validation-card {
+            display: grid;
+            gap: 8px;
+            color: #334155;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .validation-ok {
+            color: #166044;
+            font-weight: 900;
+        }
+
+        .validation-risk {
+            color: #9a3412;
+            font-weight: 900;
+        }
+
+        .semantic-toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 3000;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #fff;
+            background: rgba(31, 42, 68, 0.94);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        @media (max-width: 1180px) {
+            .llm-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .container {
+            align-items: stretch;
+        }
+
+        .left-panel,
+        .right-panel {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            gap: 14px;
+            padding: 14px 20px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            border-right: 1px solid #d8e0ec;
+        }
+
+        .left-panel::-webkit-scrollbar,
+        .right-panel::-webkit-scrollbar,
+        .semantic-profile-list::-webkit-scrollbar,
+        #result-display1::-webkit-scrollbar,
+        .semantic-validation-card::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .left-panel::-webkit-scrollbar-thumb,
+        .right-panel::-webkit-scrollbar-thumb,
+        .semantic-profile-list::-webkit-scrollbar-thumb,
+        #result-display1::-webkit-scrollbar-thumb,
+        .semantic-validation-card::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            background: rgba(39, 60, 117, 0.24);
+        }
+
+        .left-panel > h2,
+        .llm-connection-card,
+        .semantic-profile-card,
+        .left-panel > .section,
+        .left-panel > .section_graph,
+        .right-panel > .section,
+        .right-panel > .section_graph {
+            flex: 0 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 0;
+        }
+
+        .llm-connection-card,
+        .semantic-profile-card,
+        .semantic-validation-card {
+            overflow: hidden;
+        }
+
+        .left-panel > .section_graph {
+            display: flex;
+            flex-direction: column;
+            min-height: 360px;
+            height: clamp(360px, 42vh, 520px);
+        }
+
+        .left-panel > .section {
+            min-height: 210px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .right-panel > .section {
+            height: auto;
+            min-height: 330px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: visible;
+        }
+
+        .right-panel > .section_graph {
+            display: flex;
+            flex-direction: column;
+            min-height: 430px;
+            height: auto;
+        }
+
+        .section h3,
+        .section_graph h3 {
+            flex: 0 0 auto;
+        }
+
+        #causal-graph-preview,
+        #result-display {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #result-display1 {
+            flex: 0 0 auto;
+            min-height: 96px;
+            max-height: 150px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .semantic-validation-card {
+            flex: 0 0 auto;
+            max-height: 128px;
+            overflow-y: auto;
+            margin-bottom: 0;
+        }
+
+        .semantic-actions {
+            flex: 0 0 auto;
+            margin-top: 0;
+            padding-top: 4px;
+            align-items: center;
+        }
+
+        .graph-placeholder_1 {
+            min-height: 360px;
+        }
+
+        .selection-box {
+            width: 100%;
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        .selection-box label,
+        .selection-box select {
+            min-width: 0;
+        }
+
+        @media (max-width: 980px) {
+            body {
+                align-items: flex-start;
+                overflow: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .container {
+                width: calc(100% - 20px);
+                height: auto;
+                min-height: calc(100vh - 20px);
+                margin: 10px;
+                flex-wrap: wrap;
+                overflow: visible;
+            }
+
+            .sidebar {
+                min-height: 100vh;
+            }
+
+            .left-panel,
+            .right-panel {
+                flex-basis: calc(100% - 70px);
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .llm-save-options,
+            .llm-actions {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .llm-account-meta {
+                justify-items: start;
+                text-align: left;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -448,6 +886,50 @@
    <!-- 左侧面板 -->
    <div class="left-panel">
         <h2>因果分析工作区</h2>
+        <div class="llm-connection-card">
+            <div class="llm-card-title">
+                <span><i class="fas fa-plug"></i> 模型连接</span>
+                <span id="llm-status" class="llm-status-pill">未配置</span>
+            </div>
+            <div class="llm-form-grid">
+                <label>模型 URL
+                    <input id="llm-base-url" type="text" placeholder="https://api.deepseek.com/v1">
+                </label>
+                <label>模型名称
+                    <input id="llm-model" type="text" placeholder="deepseek-chat">
+                </label>
+                <label>API Key
+                    <input id="llm-api-key" type="password" placeholder="sk-...">
+                </label>
+                <label>语义提示词
+                    <input id="llm-domain-hint" type="text" placeholder="例如：教育、医疗、工业质检">
+                </label>
+            </div>
+            <div class="llm-actions">
+                <small>默认仅保存在当前浏览器；勾选后会保存到当前账号，便于下次登录复用。</small>
+                <button onclick="saveLLMConfig()"><i class="fas fa-save"></i> 保存配置</button>
+            </div>
+            <div class="llm-save-options">
+                <label class="llm-account-check">
+                    <input id="llm-save-account" type="checkbox">
+                    保存到当前账号
+                </label>
+                <div class="llm-account-meta">
+                    <span id="llm-account-config-state">未保存到账号</span>
+                    <button id="llm-delete-account-config" class="llm-danger-link" onclick="deleteAccountLLMConfig()" type="button">清除账号配置</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="semantic-profile-card">
+            <div class="profile-card-title">
+                <span><i class="fas fa-fingerprint"></i> 字段语义画像</span>
+                <button onclick="loadSemanticProfile(true)"><i class="fas fa-sync-alt"></i> 刷新</button>
+            </div>
+            <div id="semantic-profile-panel">
+                <p class="profile-summary">正在读取字段画像...</p>
+            </div>
+        </div>
         
         <!-- 变量选择区 -->
         <div class="section_graph">
@@ -480,6 +962,9 @@
             <h3>后门调整分析</h3>
             <div id="result-display1">
             </div>
+            <div id="semantic-validation" class="semantic-validation-card">
+                <span>等待语义分析和图结构校验。</span>
+            </div>
             <div class="semantic-actions">
                 <button onclick="calculateEffect()">进行最终推断</button>
                 <button onclick="saveSemanticFavorite()"><i class="fas fa-star"></i> 收藏分析</button>
@@ -497,518 +982,617 @@
 </div>
 
     <script>
-        let csvData;
-        // 动态加载变量选项
-        let causeVar = "";
-        let effectVar = ""; 
-         function renderGraph(rawNodes, rawEdges) {
-            // 将原始节点数据转换为 Vis.js 格式
-            const nodes = rawNodes.map((label, index) => ({
-                id: String(index), // 使用索引作为 id
-                label: label,      // 使用原始值作为节点标签
-            }));
+        let csvData = [];
+        let semanticProfiles = [];
+        let currentEffectMetrics = null;
+        let accountLLMConfig = null;
+        const activeJobId = {{ job_id|default('', true)|tojson }};
+        const activeVersionId = {{ version_id|default('', true)|tojson }};
+        const LLM_CONFIG_KEY = 'causai:semantic-llm-config';
 
-            // 构建节点标签到 ID 的映射表
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function showSemanticToast(message) {
+            const old = document.querySelector('.semantic-toast');
+            if (old) old.remove();
+            const toast = document.createElement('div');
+            toast.className = 'semantic-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            window.setTimeout(() => toast.remove(), 2200);
+        }
+
+        function readLLMConfig() {
+            try {
+                return {
+                    base_url: 'https://api.deepseek.com/v1',
+                    model: 'deepseek-chat',
+                    api_key: '',
+                    domain_hint: '',
+                    ...JSON.parse(localStorage.getItem(LLM_CONFIG_KEY) || '{}')
+                };
+            } catch (error) {
+                return { base_url: 'https://api.deepseek.com/v1', model: 'deepseek-chat', api_key: '', domain_hint: '' };
+            }
+        }
+
+        function collectLLMConfig() {
+            return {
+                base_url: document.getElementById('llm-base-url')?.value.trim() || 'https://api.deepseek.com/v1',
+                model: document.getElementById('llm-model')?.value.trim() || 'deepseek-chat',
+                api_key: document.getElementById('llm-api-key')?.value.trim() || '',
+                domain_hint: document.getElementById('llm-domain-hint')?.value.trim() || ''
+            };
+        }
+
+        function llmPayloadConfig() {
+            const config = collectLLMConfig();
+            return {
+                base_url: config.base_url,
+                model: config.model,
+                api_key: config.api_key
+            };
+        }
+
+        function renderAccountConfigState() {
+            const state = document.getElementById('llm-account-config-state');
+            const deleteButton = document.getElementById('llm-delete-account-config');
+            const checkbox = document.getElementById('llm-save-account');
+            if (!state || !deleteButton || !checkbox) return;
+            if (accountLLMConfig?.saved) {
+                state.textContent = `账号已保存 · ${accountLLMConfig.masked_api_key || 'API Key 已保存'}`;
+                deleteButton.classList.add('visible');
+                checkbox.checked = true;
+            } else {
+                state.textContent = '未保存到账号';
+                deleteButton.classList.remove('visible');
+            }
+        }
+
+        function updateLLMStatus() {
+            const status = document.getElementById('llm-status');
+            const config = collectLLMConfig();
+            if (!status) return;
+            const hasAccountKey = Boolean(accountLLMConfig?.saved && accountLLMConfig?.has_api_key);
+            status.textContent = config.api_key ? '本地配置' : (hasAccountKey ? '账号配置' : '占位模式');
+            status.classList.toggle('ready', Boolean(config.api_key || hasAccountKey));
+        }
+
+        function initLLMControls() {
+            const config = readLLMConfig();
+            document.getElementById('llm-base-url').value = config.base_url || 'https://api.deepseek.com/v1';
+            document.getElementById('llm-model').value = config.model || 'deepseek-chat';
+            document.getElementById('llm-api-key').value = config.api_key || '';
+            document.getElementById('llm-domain-hint').value = config.domain_hint || '';
+            ['llm-base-url', 'llm-model', 'llm-api-key', 'llm-domain-hint'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', updateLLMStatus);
+            });
+            document.getElementById('llm-save-account')?.addEventListener('change', updateLLMStatus);
+            updateLLMStatus();
+        }
+
+        async function loadAccountLLMConfig() {
+            try {
+                const response = await fetch('/api/v1/llm/config');
+                const data = await readJsonResponse(response);
+                accountLLMConfig = data;
+                if (data.saved) {
+                    document.getElementById('llm-base-url').value = data.base_url || 'https://api.deepseek.com/v1';
+                    document.getElementById('llm-model').value = data.model || 'deepseek-chat';
+                    document.getElementById('llm-domain-hint').value = data.domain_hint || '';
+                    const keyInput = document.getElementById('llm-api-key');
+                    keyInput.value = '';
+                    keyInput.placeholder = data.masked_api_key || '账号已保存 API Key';
+                }
+                renderAccountConfigState();
+                updateLLMStatus();
+            } catch (error) {
+                accountLLMConfig = null;
+                renderAccountConfigState();
+            }
+        }
+
+        async function saveLLMConfig() {
+            const config = collectLLMConfig();
+            const saveToAccount = document.getElementById('llm-save-account')?.checked;
+            if (saveToAccount) {
+                try {
+                    const response = await fetch('/api/v1/llm/config', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            base_url: config.base_url,
+                            model: config.model,
+                            api_key: config.api_key || null,
+                            domain_hint: config.domain_hint || null
+                        })
+                    });
+                    accountLLMConfig = await readJsonResponse(response);
+                    localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify({ ...config, api_key: '' }));
+                    document.getElementById('llm-api-key').value = '';
+                    document.getElementById('llm-api-key').placeholder = accountLLMConfig.masked_api_key || '账号已保存 API Key';
+                    renderAccountConfigState();
+                    updateLLMStatus();
+                    showSemanticToast('模型配置已保存到当前账号');
+                    loadSemanticProfile(true);
+                    return;
+                } catch (error) {
+                    showSemanticToast(error.message || '账号配置保存失败');
+                    return;
+                }
+            }
+            localStorage.setItem(LLM_CONFIG_KEY, JSON.stringify(config));
+            updateLLMStatus();
+            showSemanticToast('模型配置已保存在当前浏览器');
+            loadSemanticProfile(true);
+        }
+
+        async function deleteAccountLLMConfig() {
+            try {
+                const response = await fetch('/api/v1/llm/config', { method: 'DELETE' });
+                await readJsonResponse(response);
+                accountLLMConfig = null;
+                document.getElementById('llm-save-account').checked = false;
+                document.getElementById('llm-api-key').placeholder = 'sk-...';
+                renderAccountConfigState();
+                updateLLMStatus();
+                showSemanticToast('账号模型配置已清除');
+            } catch (error) {
+                showSemanticToast(error.message || '清除账号配置失败');
+            }
+        }
+
+        async function readJsonResponse(response) {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.detail || data.message || '请求失败');
+            }
+            return data;
+        }
+
+        function graphEdgesForApi() {
+            const graph = window.currentCausalGraph || { edges: [] };
+            return (graph.edges || [])
+                .map(edge => ({ source: edge.source || edge.from, target: edge.target || edge.to }))
+                .filter(edge => edge.source && edge.target);
+        }
+
+        function rowsFromEdges(edges) {
+            return (edges || []).map(edge => ({
+                Node1: edge.source || edge.from,
+                Node2: edge.target || edge.to,
+                Endpoint1: 'TAIL',
+                Endpoint2: 'ARROW'
+            }));
+        }
+
+        function populateSelect(selectId, options) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            select.innerHTML = options.map(option => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('');
+        }
+
+        function updateEffectOptions() {
+            const selectedValue = document.getElementById('cause-var').value;
+            const graph = window.currentCausalGraph || { nodes: [], edges: [] };
+            let filteredOptions = csvData
+                .filter(item => item.Endpoint1 === 'TAIL' && item.Endpoint2 === 'ARROW' && item.Node1 === selectedValue)
+                .map(item => item.Node2);
+            if (!filteredOptions.length) {
+                filteredOptions = graphEdgesForApi()
+                    .filter(edge => edge.source === selectedValue)
+                    .map(edge => edge.target);
+            }
+            if (!filteredOptions.length) {
+                filteredOptions = (graph.nodes || []).filter(item => item && item !== selectedValue);
+            }
+            populateSelect('effect-var', ['', ...new Set(filteredOptions)]);
+        }
+
+        function renderGraph(rawNodes, rawEdges) {
+            const cleanNodes = [...new Set((rawNodes || []).filter(Boolean))];
+            const nodes = cleanNodes.map((label, index) => ({ id: String(index), label }));
             const labelToId = nodes.reduce((map, node) => {
                 map[node.label] = node.id;
                 return map;
             }, {});
+            const edges = (rawEdges || [])
+                .map(edge => ({
+                    from: labelToId[edge.from || edge.source],
+                    to: labelToId[edge.to || edge.target],
+                    arrows: { to: { enabled: true, scaleFactor: 1.15 } },
+                    color: { color: '#273c75', highlight: '#1d4ed8', hover: '#21886c' },
+                    width: 2
+                }))
+                .filter(edge => edge.from !== undefined && edge.to !== undefined);
 
-            // 将原始边数据的 source 和 target 转换为节点的 id
-            const edges = rawEdges.map(edge => ({
-                from: labelToId[edge.from || edge.source], // 使用映射找到对应的 from id
-                to: labelToId[edge.to || edge.target],   // 使用映射找到对应的 to id
-                arrows: {
-                    to: { enabled: true, scaleFactor: 1.2 }, // 美化箭头
-                },
-                color: {
-                    color: '#000000',      // 边默认颜色改为黑色
-                    highlight: '#FF5733', // 高亮颜色
-                    hover: '#2ECC71',     // 悬浮颜色
-                },
-                width: 2, // 边宽度
-            }));
-
-            console.log('Processed Nodes:', nodes);
-            console.log('Processed Edges:', edges);
-
-            // 配置 Vis.js 图的选项
+            const container = document.getElementById('causal-graph-preview');
+            const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
             const options = {
                 nodes: {
-                    shape: 'dot', // 节点为圆形点
-                    size: 15, // 节点大小
-                    font: {
-                        size: 18,   // 标签字体大小
-                        color: '#2C3E50', // 标签颜色
-                        face: 'Arial',    // 字体样式
-                    },
+                    shape: 'dot',
+                    size: 16,
+                    font: { size: 15, color: '#22304a', face: 'Avenir Next, Segoe UI, sans-serif' },
                     color: {
-                        background: '#3498DB', // 节点背景色
-                        border: '#2980B9',    // 节点边框色
-                        highlight: {
-                            background: '#1ABC9C', // 高亮背景色
-                            border: '#16A085',    // 高亮边框色
-                        },
-                        hover: {
-                            background: '#F1C40F', // 悬浮背景色
-                            border: '#F39C12',    // 悬浮边框色
-                        },
+                        background: '#e8eefc',
+                        border: '#273c75',
+                        highlight: { background: '#dff8eb', border: '#21886c' },
+                        hover: { background: '#fff7df', border: '#d97706' }
                     },
-                    borderWidth: 2, // 节点边框宽度
+                    borderWidth: 2
                 },
                 edges: {
-                    arrows: { to: { enabled: true, scaleFactor: 1.2 } }, // 美化箭头
-                    color: {
-                        color: '#000000',      // 默认黑色边
-                        highlight: '#E74C3C', // 高亮红色边
-                        hover: '#8E44AD',     // 悬浮紫色边
-                    },
-                    smooth: {
-                        type: 'dynamic', // 动态平滑曲线
-                    },
-                    width: 2, // 边默认宽度
+                    arrows: { to: { enabled: true, scaleFactor: 1.15 } },
+                    smooth: { type: 'dynamic' },
+                    width: 2
                 },
-                interaction: {
-                    dragNodes: true, // 支持拖拽节点
-                    zoomView: true,  // 支持缩放
-                    dragView: true,  // 支持拖拽视图
-                    hover: true,     // 节点悬浮显示
-                },
-                physics: {
-                    enabled: true, // 启用物理引擎
-                    stabilization: {
-                        iterations: 100, // 稳定布局迭代次数
-                    },
-                },
+                interaction: { dragNodes: true, zoomView: true, dragView: true, hover: true },
+                physics: { enabled: true, stabilization: { iterations: 120 } }
             };
-
-            // 渲染容器
-            const container = document.getElementById('causal-graph-preview');
-
-            // 创建图形数据
-            const data = {
-                nodes: new vis.DataSet(nodes),
-                edges: new vis.DataSet(edges),
-            };
-            console.log(data);
-
-            // 初始化网络图
-            const network = new vis.Network(container, data, options);
-
-            // 调整布局
-            network.stabilize();
+            new vis.Network(container, data, options).stabilize();
         }
 
-    async function sendMessage() {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 600000); // 60秒超时
-            // 获取预览容器
-            const previewDiv = document.getElementById('causal-graph-preview');
-
+        async function loadExistingCausalGraph() {
             try {
-                showLoading('causal-graph-preview', '正在生成因果图，可能需要较长时间...');
-                console.log("begin!!!!!!!!!!!!!!!")
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        messages: [
-                            {role: "user", content: ""}
-                        ]
-                    }),
-                    signal: controller.signal // 绑定终止信号
-                });
-                clearTimeout(timeoutId);
-                console.log("finish!!!!!!!!!!!!!!")
-                console.log(response)
+                const response = await fetch('/get-csv-data');
                 const data = await response.json();
-                console.log("========================")
-                console.log(data)
-                console.log(data.edges)
-                console.log(data.nodes)
-
-
-                if (!data.nodes || !data.edges) {
-                    await loadExistingCausalGraph();
-                    return;
+                if (data.error || !data.nodes || !data.edges) {
+                    document.getElementById('causal-graph-preview').innerHTML = '请先在“数据驱动因果”页面完成因果分析。';
+                    return null;
                 }
-                window.currentCausalGraph = {
-                    nodes: data.nodes,
-                    edges: data.edges
-                };
-                 // 清除加载状态
+                window.currentCausalGraph = { nodes: data.nodes, edges: data.edges };
+                csvData = data.csv_data || rowsFromEdges(data.edges);
+                renderGraph(data.nodes, data.edges);
+                return window.currentCausalGraph;
+            } catch (error) {
+                document.getElementById('causal-graph-preview').innerHTML = '暂未读取到因果图结果。';
+                return null;
+            }
+        }
+
+        async function loadVariableOptions() {
+            try {
+                const response = await fetch('/api/get-var');
+                if (!response.ok) throw new Error('变量接口不可用');
+                const data = await response.json();
+                const names = ['', ...data.map(item => item.name).filter(Boolean)];
+                populateSelect('cause-var', names);
+                populateSelect('effect-var', ['']);
+                document.getElementById('cause-var').addEventListener('change', updateEffectOptions);
+                updateEffectOptions();
+            } catch (error) {
+                showSemanticToast('变量列表加载失败');
+            }
+        }
+
+        async function sendMessage() {
+            if (!activeJobId) {
+                showSemanticToast('请先在数据驱动因果页完成一次分析');
+                await loadExistingCausalGraph();
+                return;
+            }
+            try {
+                showLoading('causal-graph-preview', '正在调用语义引擎定向因果边...');
+                const response = await fetch('/api/v1/llm/orient-edges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: activeJobId, llm_config: llmPayloadConfig() })
+                });
+                const data = await readJsonResponse(response);
+                window.currentCausalGraph = { nodes: data.nodes, edges: data.edges };
+                csvData = rowsFromEdges(data.edges);
                 hideLoading('causal-graph-preview');
                 renderGraph(data.nodes, data.edges);
-                        // 获取分析结果并显示
-                function fetchData() {
-                    fetch('/get_csv_data_new')
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log("Data received:", data);
-                            if (data.error) {
-                                alert(data.error);
-                            } else {
-                                console.log("*****************")
-                                console.log(data);
-                                csvData = data;
-                            }
-                        })
-                        .catch(error => console.error("获取数据时出错:", error));
-                }
-                fetchData();
-
+                renderValidation(data.validation, data.orientation_evidence || [], data.configured);
+                updateEffectOptions();
+                showSemanticToast(data.configured ? '语义定向完成' : '未配置密钥，已显示本地有向边');
             } catch (error) {
                 hideLoading('causal-graph-preview');
-                previewDiv.innerHTML = '<div class="graph-placeholder">数据加载失败，请重试</div>';
-                if (error.name === 'AbortError') {
-                    showTimeoutMessage(); // 显示超时提示
-                }
-                //
+                showSemanticToast(error.message || '语义定向失败');
             }
-            
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadExistingCausalGraph();
-            // 从后端接口获取数据集
-            fetch('/api/get-var')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('网络错误或接口不可用');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("++++++++++++++==")
-                        console.log(data);
-                        // 动态填充下拉菜单
-                        const populateSelect = (selectId, options) => {
-                            const select = document.getElementById(selectId);
-                            select.innerHTML = options.map(option => 
-                                `<option value="${option}">${option}</option>`
-                            ).join('');
-                        };
-                        populateSelect('effect-var', []);
-                        const namesString = data.map(data => data.name).join(',');
-                        const namesArray = namesString.split(',');
-                        namesArray.unshift('');
-                        populateSelect('cause-var', namesArray);
-
-                        // 监听第一个下拉菜单的变化
-                        document.getElementById('cause-var').addEventListener('change', (event) => {
-                            console.log("1111111111")
-                            console.log(csvData)
-                            const selectedValue = event.target.value;
-                            
-                            // 根据选择的第一个变量更新第二个下拉菜单
-                            const filteredOptions = csvData
-                                .filter(item => item.Endpoint1 === 'TAIL' && item.Endpoint2 === 'ARROW' && item.Node1 === selectedValue)
-                                .map(item => item.Node2);
-                            
-                            populateSelect('effect-var', filteredOptions);
-                        });
-                        causeVar = document.getElementById('cause-var').value;
-                        effectVar = document.getElementById('effect-var').value;
-                    })
-                    .catch(error => {
-                        console.error('数据加载错误:', error);
-                        document.getElementById('dataset-config').innerHTML = '<p>数据加载失败，请稍后重试。</p>';
-                    });
-
-        });
-
-            async function loadExistingCausalGraph() {
-                try {
-                    const response = await fetch('/get-csv-data');
-                    const data = await response.json();
-                    if (data.error || !data.nodes || !data.edges) {
-                        document.getElementById('causal-graph-preview').innerHTML = '请先在“数据驱动因果”页面完成因果分析。';
-                        return;
-                    }
-                    window.currentCausalGraph = { nodes: data.nodes, edges: data.edges };
-                    csvData = data.csv_data || [];
-                    renderGraph(data.nodes, data.edges);
-                } catch (error) {
-                    document.getElementById('causal-graph-preview').innerHTML = '暂未读取到因果图结果。';
-                }
+        async function loadSemanticProfile(force = false) {
+            const panel = document.getElementById('semantic-profile-panel');
+            if (!activeVersionId) {
+                panel.innerHTML = '<p class="profile-summary">请先上传或选择数据集。</p>';
+                return;
             }
-
-            
-            function generateCausalGraph() {
-                // 获取当前选中的变量
-                const causeVar = document.getElementById('cause-var').value;
-                const effectVar = document.getElementById('effect-var').value;
-                
-                // 验证数据完整性
-                if (!causeVar || !effectVar || !window.currentCausalGraph) {
-                    alert("请先选择变量并生成因果图");
-                    return;
-                }
-                document.getElementById('result-display1').innerHTML = '';
-                showLoading('result-display1', '正在筛选后门调整集...');
-                // 调用独立分析函数
-                analyzeBackdoor(causeVar, effectVar)
-                    .finally(() => {
-                        // 无论成功失败都隐藏加载状态
-                        hideLoading('result-display1');
-                    });
-
+            if (force) {
+                panel.innerHTML = '<p class="profile-summary">正在生成字段语义画像...</p>';
             }
-
-            // analyzeBackdoor函数
-            async function analyzeBackdoor(causeVar, effectVar) {
-                try {
-                    const response = await fetch('/api/backdoor_adjustment', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            cause_var: causeVar,
-                            effect_var: effectVar,
-                            nodes: window.currentCausalGraph.nodes,
-                            edges: window.currentCausalGraph.edges
-                        })
-                    });
-
-                    const result = await response.json();
-                    displayAdjustmentResult(result.adjustment_set);
-                } catch (error) {
-                    console.error('分析失败:', error);
-                    showError("后端请求失败");
-                }
-            }
-
-            // 新增结果显示函数
-        function displayAdjustmentResult(adjustmentSet) {
-            const resultDiv = document.getElementById('result-display1');
-            resultDiv.innerHTML = adjustmentSet.length > 0 
-                ? `<strong>需要调整的变量集：</strong>${adjustmentSet.join(', ')}`
-                : "无需后门调整";
-            }
-            function calculateEffect() {
-                // 获取选中的变量
-                const causeVar = document.getElementById('cause-var').value;
-                const effectVar = document.getElementById('effect-var').value;
-                console.log(causeVar, effectVar);
-                // 验证数据完整性
-                if (!causeVar || !effectVar || !window.currentCausalGraph) {
-                    alert("请先选择变量并生成因果图");
-                    return;
-                }
-
-                // 构造请求数据
-                const requestData = {
-                    cause_var: causeVar,
-                    effect_var: effectVar,
-                    nodes: window.currentCausalGraph.nodes,
-                    edges: window.currentCausalGraph.edges
-                };
-
-                // 发送POST请求
-                fetch('/api/calculate-effect', {
+            try {
+                const response = await fetch('/api/v1/llm/semantic-profile', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('网络响应异常');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        // 展示结果到页面
-                        displayResult(data);
-                        
-                        // 调用大模型分析功能
-                        performCausalAnalysis();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('请求失败: ' + error.message);
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dataset_version_id: activeVersionId, llm_config: llmPayloadConfig() })
                 });
+                const data = await readJsonResponse(response);
+                semanticProfiles = data.columns || [];
+                renderSemanticProfile(data);
+            } catch (error) {
+                panel.innerHTML = `<p class="profile-summary">字段画像加载失败：${escapeHtml(error.message)}</p>`;
             }
+        }
 
-            // 结果展示函数
-            function displayResult(data) {
-                const resultDiv = document.getElementById('result-display');
-                
-                // 使用Plotly绘制结果（示例）
-                const traces = [{
-                    x: Object.keys(data),
-                    y: Object.values(data),
-                    type: 'bar'
-                }];
-                
-                Plotly.newPlot(resultDiv, traces, {
-                    title: '因果效应指标',
-                    yaxis: { title: '数值' },
-                    width: 600,  // 设置图表宽度
-                    height: 320  // 设置图表高度
-                });
-            }
-
-             // 通用加载状态控制函数
-             function showLoading(containerId, text = '正在分析中，请稍候...') {
-                const container = document.getElementById(containerId);
-                container.style.position = 'relative';
-                container.innerHTML += `
-                    <div class="loading-overlay">
-                        <div class="loading-spinner"></div>
-                        <div class="loading-text">${text}</div>
+        function renderSemanticProfile(data) {
+            const panel = document.getElementById('semantic-profile-panel');
+            const warnings = (data.warnings || []).map(item => `<div class="semantic-warning">${escapeHtml(item)}</div>`).join('');
+            const cards = (data.columns || []).map(column => `
+                <div class="semantic-profile-item">
+                    <div class="profile-item-head">
+                        <span>${escapeHtml(column.name)}</span>
+                        <span class="role-badge">${escapeHtml(column.inferred_role || 'unknown')}</span>
                     </div>
-                `;
-            }
+                    <div class="profile-desc">${escapeHtml(column.description || '')}</div>
+                    <div class="semantic-evidence">${escapeHtml((column.evidence || []).slice(0, 2).join(' · '))}</div>
+                </div>
+            `).join('');
+            panel.innerHTML = `
+                <p class="profile-summary">${escapeHtml(data.summary || '字段语义画像已生成。')}</p>
+                ${warnings}
+                <div class="semantic-profile-list">${cards || '<div class="profile-summary">暂无字段画像。</div>'}</div>
+            `;
+        }
 
-            function hideLoading(containerId) {
-                const container = document.getElementById(containerId);
-                const overlay = container.querySelector('.loading-overlay');
-                if (overlay) {
-                    overlay.remove();
-                }
+        function renderValidation(validation, orientationEvidence = [], configured = false) {
+            const panel = document.getElementById('semantic-validation');
+            if (!panel) return;
+            if (!validation) {
+                panel.innerHTML = '<span>暂无图结构校验结果。</span>';
+                return;
             }
+            const evidenceHtml = orientationEvidence.slice(0, 4).map(item => `
+                <div class="semantic-evidence">
+                    ${escapeHtml(item.source)} → ${escapeHtml(item.target)}
+                    · 置信度 ${(Number(item.confidence || 0) * 100).toFixed(0)}%
+                    ${item.requires_review ? ' · 需复核' : ''}
+                    ${item.rationale ? `<br>${escapeHtml(item.rationale)}` : ''}
+                </div>
+            `).join('');
+            const warningHtml = (validation.warnings || []).map(item => `<div class="semantic-warning">${escapeHtml(item)}</div>`).join('');
+            panel.innerHTML = `
+                <div class="${validation.is_dag ? 'validation-ok' : 'validation-risk'}">
+                    ${validation.is_dag ? 'DAG 校验通过' : '图中存在环，需要复核'}
+                    · ${configured ? 'LLM 已参与' : '本地规则'}
+                </div>
+                ${warningHtml}
+                ${evidenceHtml || '<div class="semantic-evidence">暂无边方向证据。</div>'}
+            `;
+        }
 
-            // 大模型分析函数
-            async function performCausalAnalysis() {
-                try {
-                    // 显示弹窗
-                    showAnalysisModal();
-                    
-                    // 检查必需的DOM元素是否存在
-                    const loadingElement = document.getElementById('analysisLoading');
-                    const resultElement = document.getElementById('analysisResult');
-                    
-                    if (!loadingElement || !resultElement) {
-                        console.error('所需的DOM元素未找到');
-                        return;
-                    }
-                    
-                    // 显示加载状态
-                    loadingElement.style.display = 'flex';
-                    resultElement.innerHTML = '';
-                    
-                    // 读取result_new.csv文件内容
-                    const response = await fetch('/get_csv_data_new?format=csv');
-                    const csvContent = await response.text();
-                    
-                    // 在弹窗中显示数据预览
-                    displayCausalDataPreview(csvContent);
-                    
-                    // 发送给大模型分析
-                    const analysisResponse = await fetch('/api/analyze-causal-results', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            causal_data: csvContent,
-                            prompt: "这是我基于教育场景下的数据集进行因果推断得到的因果图，帮我分析下可以从中得到哪些结论。"
-                        })
-                    });
-                    
-                    const analysisResult = await analysisResponse.json();
-                    
-                    // 隐藏加载状态并显示结果
-                    loadingElement.style.display = 'none';
-                    
-                    if (analysisResult.success) {
-                        resultElement.innerHTML = 
-                            `<div style="white-space: pre-wrap; line-height: 1.8;">${analysisResult.analysis}</div>`;
-                    } else {
-                        resultElement.innerHTML = 
-                            `<div style="color: #e74c3c;">分析失败: ${analysisResult.error}</div>`;
-                    }
-                    
-                } catch (error) {
-                    console.error('分析过程出错:', error);
-                    const loadingElement = document.getElementById('analysisLoading');
-                    const resultElement = document.getElementById('analysisResult');
-                    
-                    if (loadingElement) loadingElement.style.display = 'none';
-                    if (resultElement) {
-                        resultElement.innerHTML = 
-                            `<div style="color: #e74c3c;">分析过程出错: ${error.message}</div>`;
-                    }
-                }
+        function generateCausalGraph() {
+            const causeVar = document.getElementById('cause-var').value;
+            const effectVar = document.getElementById('effect-var').value;
+            if (!causeVar || !effectVar || !window.currentCausalGraph) {
+                showSemanticToast('请先选择变量并加载因果图');
+                return;
             }
+            document.getElementById('result-display1').innerHTML = '';
+            showLoading('result-display1', '正在筛选后门调整集...');
+            analyzeBackdoor(causeVar, effectVar).finally(() => hideLoading('result-display1'));
+        }
 
-            // 显示数据预览
-            function displayCausalDataPreview(csvContent) {
-                const previewElement = document.getElementById('causalDataPreview');
-                if (!previewElement) {
-                    console.error('数据预览元素未找到');
-                    return;
-                }
-                
-                const lines = csvContent.trim().split('\n');
-                const maxLines = 10; // 最多显示10行
-                const preview = lines.slice(0, maxLines).join('\n');
-                const remaining = lines.length - maxLines;
-                
-                let previewText = preview;
-                if (remaining > 0) {
-                    previewText += `\n... 还有 ${remaining} 行数据`;
-                }
-                
-                previewElement.textContent = previewText;
-            }
-
-            // 显示弹窗
-            function showAnalysisModal() {
-                const modal = document.getElementById('analysisModal');
-                const resultElement = document.getElementById('analysisResult');
-                const previewElement = document.getElementById('causalDataPreview');
-                const loadingElement = document.getElementById('analysisLoading');
-                
-                if (modal) modal.style.display = 'block';
-                
-                // 重置内容
-                if (resultElement) resultElement.innerHTML = '';
-                if (previewElement) previewElement.textContent = '';
-                if (loadingElement) loadingElement.style.display = 'none';
-            }
-
-            // 关闭弹窗
-            function closeAnalysisModal() {
-                document.getElementById('analysisModal').style.display = 'none';
-            }
-
-            function saveSemanticFavorite() {
-                const cause = document.getElementById('cause-var').value;
-                const effect = document.getElementById('effect-var').value;
-                const result = document.getElementById('result-display1').innerText || document.getElementById('result-display').innerText || '';
-                fetch('/api/favorites', {
+        async function analyzeBackdoor(causeVar, effectVar) {
+            try {
+                const response = await fetch('/api/v1/llm/backdoor-adjustment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        kind: 'semantic',
-                        title: cause && effect ? `语义因果：${cause} → ${effect}` : '语义因果分析视图',
-                        description: result || '保存当前语义理解因果分析工作区。',
-                        payload: {
-                            page: 'big-model-analysis.html',
-                            cause,
-                            effect,
-                            graph: window.currentCausalGraph || null
-                        }
+                        cause_var: causeVar,
+                        effect_var: effectVar,
+                        nodes: window.currentCausalGraph.nodes,
+                        edges: graphEdgesForApi(),
+                        llm_config: llmPayloadConfig()
                     })
-                })
-                    .then(response => response.json())
-                    .then(data => alert(data.success ? '已加入收藏夹' : (data.message || '收藏失败')))
-                    .catch(() => alert('收藏失败，请稍后重试'));
+                });
+                const result = await readJsonResponse(response);
+                displayAdjustmentResult(result);
+                renderValidation(result.validation, [], result.configured);
+            } catch (error) {
+                document.getElementById('result-display1').innerHTML = `<div style="color:#e74c3c;">${escapeHtml(error.message || '后端请求失败')}</div>`;
             }
+        }
 
-            // 点击弹窗外部关闭
-            window.onclick = function(event) {
-                const modal = document.getElementById('analysisModal');
-                if (event.target === modal) {
-                    closeAnalysisModal();
-                }
+        function displayAdjustmentResult(result) {
+            const adjustmentSet = result.adjustment_set || [];
+            const resultDiv = document.getElementById('result-display1');
+            const setText = adjustmentSet.length > 0 ? adjustmentSet.join(', ') : '无需后门调整';
+            const evidence = (result.evidence || []).map(item => `<div class="semantic-evidence">${escapeHtml(item)}</div>`).join('');
+            resultDiv.innerHTML = `
+                <strong>需要调整的变量集：</strong>${escapeHtml(setText)}
+                ${result.rationale ? `<div>${escapeHtml(result.rationale)}</div>` : ''}
+                ${evidence}
+                ${!result.configured ? '<div class="semantic-warning">当前为本地图结构规则结果；配置模型密钥后可启用 LLM 复核。</div>' : ''}
+            `;
+        }
+
+        async function calculateEffect() {
+            const causeVar = document.getElementById('cause-var').value;
+            const effectVar = document.getElementById('effect-var').value;
+            if (!causeVar || !effectVar || !window.currentCausalGraph) {
+                showSemanticToast('请先选择变量并生成因果图');
+                return;
             }
+            try {
+                const response = activeJobId
+                    ? await fetch('/api/v1/causal/effect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ job_id: activeJobId, cause_var: causeVar, effect_var: effectVar })
+                    })
+                    : await fetch('/api/calculate-effect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cause_var: causeVar, effect_var: effectVar, nodes: window.currentCausalGraph.nodes, edges: graphEdgesForApi() })
+                    });
+                const data = await readJsonResponse(response);
+                currentEffectMetrics = data;
+                displayResult(data);
+                performCausalAnalysis();
+            } catch (error) {
+                showSemanticToast(error.message || '效应计算失败');
+            }
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result-display');
+            resultDiv.innerHTML = '';
+            const labels = {
+                kl_divergence: 'KL 散度',
+                js_divergence: 'JS 散度',
+                total_variation: '总变差',
+                wasserstein_distance: 'Wasserstein',
+                hellinger_distance: 'Hellinger'
+            };
+            const keys = Object.keys(labels).filter(key => data[key] !== undefined);
+            const traces = [{
+                x: keys.map(key => labels[key]),
+                y: keys.map(key => Number(data[key] || 0)),
+                type: 'bar',
+                marker: { color: ['#273c75', '#2563eb', '#21886c', '#a72f62', '#d97706'] }
+            }];
+            Plotly.newPlot(resultDiv, traces, {
+                title: { text: '因果效应指标', font: { size: 16, color: '#22304a' } },
+                margin: { l: 50, r: 20, t: 45, b: 50 },
+                yaxis: { title: '数值', gridcolor: '#e8edf5' },
+                plot_bgcolor: '#fbfdff',
+                paper_bgcolor: '#fbfdff'
+            }, { responsive: true, displaylogo: false });
+        }
+
+        function showLoading(containerId, text = '正在分析中，请稍候...') {
+            const container = document.getElementById(containerId);
+            container.style.position = 'relative';
+            container.innerHTML += `
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">${escapeHtml(text)}</div>
+                </div>
+            `;
+        }
+
+        function hideLoading(containerId) {
+            const container = document.getElementById(containerId);
+            const overlay = container.querySelector('.loading-overlay');
+            if (overlay) overlay.remove();
+        }
+
+        async function performCausalAnalysis() {
+            showAnalysisModal();
+            const loadingElement = document.getElementById('analysisLoading');
+            const resultElement = document.getElementById('analysisResult');
+            if (!activeJobId) {
+                resultElement.innerHTML = '<div style="color:#e74c3c;">请先完成数据驱动因果分析，再进行大模型解释。</div>';
+                return;
+            }
+            try {
+                loadingElement.style.display = 'flex';
+                resultElement.innerHTML = '';
+                const response = await fetch('/get_csv_data_new?format=csv');
+                const csvContent = await response.text();
+                displayCausalDataPreview(csvContent);
+                const hint = collectLLMConfig().domain_hint;
+                const analysisResponse = await fetch('/api/v1/llm/analyze-result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: activeJobId,
+                        llm_config: llmPayloadConfig(),
+                        field_profiles: semanticProfiles,
+                        prompt: `请结合${hint || '当前业务'}场景，分析这个因果图、后门调整和效应指标。效应指标：${JSON.stringify(currentEffectMetrics || {})}`
+                    })
+                });
+                const analysisResult = await readJsonResponse(analysisResponse);
+                loadingElement.style.display = 'none';
+                const warnings = (analysisResult.warnings || []).map(item => `<div class="semantic-warning">${escapeHtml(item)}</div>`).join('');
+                resultElement.innerHTML = `
+                    ${warnings}
+                    <div style="white-space: pre-wrap; line-height: 1.8;">${escapeHtml(analysisResult.analysis)}</div>
+                `;
+            } catch (error) {
+                loadingElement.style.display = 'none';
+                resultElement.innerHTML = `<div style="color:#e74c3c;">分析过程出错: ${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        function displayCausalDataPreview(csvContent) {
+            const previewElement = document.getElementById('causalDataPreview');
+            const lines = csvContent.trim().split('\n');
+            const maxLines = 10;
+            const remaining = lines.length - maxLines;
+            previewElement.textContent = lines.slice(0, maxLines).join('\n') + (remaining > 0 ? `\n... 还有 ${remaining} 行数据` : '');
+        }
+
+        function showAnalysisModal() {
+            const modal = document.getElementById('analysisModal');
+            const resultElement = document.getElementById('analysisResult');
+            const previewElement = document.getElementById('causalDataPreview');
+            const loadingElement = document.getElementById('analysisLoading');
+            if (modal) modal.style.display = 'block';
+            if (resultElement) resultElement.innerHTML = '';
+            if (previewElement) previewElement.textContent = '';
+            if (loadingElement) loadingElement.style.display = 'none';
+        }
+
+        function closeAnalysisModal() {
+            document.getElementById('analysisModal').style.display = 'none';
+        }
+
+        function saveSemanticFavorite() {
+            const cause = document.getElementById('cause-var').value;
+            const effect = document.getElementById('effect-var').value;
+            const result = document.getElementById('result-display1').innerText || document.getElementById('result-display').innerText || '';
+            fetch('/api/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    kind: 'semantic_report',
+                    title: cause && effect ? `语义因果：${cause} → ${effect}` : '语义因果分析视图',
+                    description: result || '保存当前语义理解因果分析工作区。',
+                    payload: {
+                        page: 'big-model-analysis.html',
+                        cause,
+                        effect,
+                        graph: window.currentCausalGraph || null,
+                        semantic_profiles: semanticProfiles,
+                        effect_metrics: currentEffectMetrics
+                    },
+                    snapshot: {
+                        cause,
+                        effect,
+                        graph: window.currentCausalGraph || null,
+                        semantic_profiles: semanticProfiles,
+                        effect_metrics: currentEffectMetrics,
+                        saved_at: new Date().toISOString()
+                    }
+                })
+            })
+                .then(response => response.json())
+                .then(data => showSemanticToast(data.success ? '已加入收藏夹' : (data.message || '收藏失败')))
+                .catch(() => showSemanticToast('收藏失败，请稍后重试'));
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('analysisModal');
+            if (event.target === modal) closeAnalysisModal();
+        };
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            initLLMControls();
+            await loadAccountLLMConfig();
+            await loadExistingCausalGraph();
+            await loadVariableOptions();
+            await loadSemanticProfile(false);
+        });
     </script>
 
     <!-- 大模型分析结果弹窗 -->

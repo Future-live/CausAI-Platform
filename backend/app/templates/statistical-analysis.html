@@ -15,7 +15,9 @@
             display: flex;
             background-color: #f6f8fc; /* 背景色 */
             flex-direction: column; /* 垂直排列：顶部是 tab-buttons，下面是内容区域 */
-            width: 100%; /* 占满屏幕宽度 */
+            flex: 1 1 0%;
+            min-width: 0;
+            width: auto;
             height: 100%; /* 可选：占满屏幕高度 */
             box-sizing: border-box;
             padding: 10px;
@@ -287,6 +289,11 @@
             color: #fff;
         }
 
+        .drop-zone.active:hover {
+            background: #314a8d;
+            border-color: #314a8d;
+        }
+
         .drop-zone.active .zone-label,
         .drop-zone.active .zone-value,
         .drop-zone.active .zone-badge {
@@ -296,6 +303,17 @@
         .drop-zone.active .zone-badge {
             background: rgba(255, 255, 255, 0.16);
             border-color: rgba(255, 255, 255, 0.32);
+        }
+
+        .drop-zone.active {
+            cursor: grab;
+        }
+
+        .drop-zone.active:active,
+        .drop-zone.dragging-out {
+            cursor: grabbing;
+            border-color: #8fb7df;
+            box-shadow: 0 10px 22px rgba(39, 60, 117, 0.22);
         }
 
         .drop-zone:hover {
@@ -1016,6 +1034,7 @@
 
 	        let chartType = 'scatter';
 	        let draggedBlock = null;
+	        let activeParamDrag = null;
 	        let autoChartTimer = null;
 	        const activeDatasetId = "{{ dataset_id|default('', true) }}";
 	        const activeVersionId = "{{ version_id|default('', true) }}";
@@ -1067,7 +1086,18 @@
 	                </span>
 	                <span class="zone-badge">${escapeHtml(value ? 'selected' : badge)}</span>
 	            `;
+            dropZone.draggable = Boolean(value);
+            if (value) {
+                dropZone.setAttribute('aria-grabbed', 'false');
+                dropZone.ondragstart = event => dragAssignedField(event, axis);
+                dropZone.ondragend = event => endAssignedFieldDrag(event, axis);
+            } else {
+                dropZone.removeAttribute('aria-grabbed');
+                dropZone.ondragstart = null;
+                dropZone.ondragend = null;
+            }
             dropZone.classList.toggle('active', Boolean(value));
+            dropZone.classList.remove('dragging-out');
             dropZone.style.backgroundColor = '';
             dropZone.style.color = '';
         }
@@ -1102,16 +1132,6 @@
                 .catch(() => {});
         }
 
-        function toggleDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function hideDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = 'none';
-        }
-
         function drag(event) {
             const source = event.target.closest('#fields li');
             if (!source) {
@@ -1123,7 +1143,10 @@
             // document.body.appendChild(block);
             draggedBlock = block;
 
-            event.dataTransfer.setData("text", source.dataset.field || source.id);
+            const fieldName = source.dataset.field || source.id;
+            event.dataTransfer.effectAllowed = 'copy';
+            event.dataTransfer.setData('text', fieldName);
+            event.dataTransfer.setData('text/plain', fieldName);
             document.addEventListener('mousemove', moveBlock);
         }
         function moveBlock(event) {
@@ -1132,6 +1155,32 @@
                 draggedBlock.style.top = (event.pageY + 10) + 'px';
             }
         }
+
+        function dragAssignedField(event, axis) {
+            const value = dropData[axis];
+            if (!value) {
+                event.preventDefault();
+                return;
+            }
+            activeParamDrag = { axis, value, dropped: false };
+            event.currentTarget.classList.add('dragging-out');
+            event.currentTarget.setAttribute('aria-grabbed', 'true');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text', value);
+            event.dataTransfer.setData('text/plain', value);
+            event.dataTransfer.setData('source-axis', axis);
+        }
+
+        function endAssignedFieldDrag(event, axis) {
+            const dragState = activeParamDrag;
+            event.currentTarget.classList.remove('dragging-out');
+            event.currentTarget.setAttribute('aria-grabbed', 'false');
+            if (dragState && dragState.axis === axis && !dragState.dropped) {
+                clearSelection(axis);
+            }
+            activeParamDrag = null;
+        }
+
 	        function updateFieldColors() {
 	            const fieldItems = document.querySelectorAll("#fields li");  // 获取所有字段列表项
 	            fieldItems.forEach(item => {
@@ -1156,15 +1205,27 @@
 	        }
         function drop(event, axis) {
             event.preventDefault();
-            let data = event.dataTransfer.getData("text");
-
-
-            dropData[axis] = data;
+            let data = event.dataTransfer.getData('text') || event.dataTransfer.getData('text/plain');
+            const sourceAxis = event.dataTransfer.getData('source-axis');
             const dropZone = event.target.closest ? event.target.closest('.drop-zone') : null;
-            if (!dropZone) {
+            if (!dropZone || !data) {
                 return;
             }
+
+            if (activeParamDrag && activeParamDrag.axis === sourceAxis) {
+                activeParamDrag.dropped = true;
+            }
+
+            dropData[axis] = data;
             renderDropZoneContent(dropZone, axis, data);
+
+            if (sourceAxis && sourceAxis !== axis && Object.prototype.hasOwnProperty.call(dropData, sourceAxis)) {
+                dropData[sourceAxis] = null;
+                const sourceDropZone = document.querySelector(`.drop-zone[data-axis="${sourceAxis}"]`);
+                if (sourceDropZone) {
+                    renderDropZoneContent(sourceDropZone, sourceAxis, null);
+                }
+            }
 
             if (draggedBlock) {
                 draggedBlock.remove();
@@ -1627,6 +1688,19 @@
             });
         }
 
+        function renderChartEmpty(message = '等待字段配置', detail = '拖动字段到 X 轴和 Y 轴后会自动生成图表。') {
+            const chart = document.getElementById('chart');
+            if (!chart) {
+                return;
+            }
+            chart.innerHTML = `
+                <div class="chart-empty">
+                    ${escapeHtml(message)}
+                    <small>${escapeHtml(detail)}</small>
+                </div>
+            `;
+        }
+
         function renderBarChart(data, xField, yField, colorField) {
             const chart = document.getElementById('chart');
             chart.innerHTML = '';
@@ -1742,12 +1816,30 @@
 
 
 
-        function clearSelection(axis) {
+        function clearSelection(eventOrAxis, maybeAxis) {
+            if (eventOrAxis && typeof eventOrAxis.preventDefault === 'function') {
+                eventOrAxis.preventDefault();
+                eventOrAxis.stopPropagation();
+            }
+            const axis = maybeAxis || eventOrAxis;
+            if (!Object.prototype.hasOwnProperty.call(dropData, axis)) {
+                return;
+            }
             dropData[axis] = null;
-            const dropZone = document.querySelector(`.drop-zone[data-var-type="${axis === 'x' ? 'X 轴' : axis === 'y' ? 'Y 轴' : axis === 'color' ? '颜色' : axis === 'size' ? '大小' : '透明度'}"]`);
+            const dropZone = document.querySelector(`.drop-zone[data-axis="${axis}"]`);
             if (dropZone) {
                 renderDropZoneContent(dropZone, axis, null);
             }
+            updateFieldColors();
+            if (!hasRequiredChartFields()) {
+                renderChartEmpty();
+                showChartStatus(
+                    chartType === 'pixel' ? '字段已移出，请至少保留一个字段。' : '字段已移出，请重新拖入 X 轴和 Y 轴。',
+                    ''
+                );
+                return;
+            }
+            scheduleAutoChart();
         }
 
         function renderScatterChart(data, xField, yField, colorField, sizeField, opacityField) {

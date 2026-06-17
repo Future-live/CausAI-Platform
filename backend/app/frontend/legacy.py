@@ -353,6 +353,8 @@ async def causal_analysis_view(
         return JSONResponse({"error": "请先上传数据"}, status_code=400)
     form = await request.form()
     algorithm = str(form.get("algorithm") or "pc")
+    if algorithm not in {"pc", "gies"}:
+        return JSONResponse({"error": "不支持的算法"}, status_code=400)
     selected = [item for item in str(form.get("sel_var") or "").split(",") if item]
     try:
         raw_edges = json.loads(str(form.get("background_edge") or "[]"))
@@ -360,11 +362,14 @@ async def causal_analysis_view(
         return JSONResponse({"error": "背景知识边格式错误"}, status_code=400)
     if not isinstance(raw_edges, list):
         return JSONResponse({"error": "背景知识边格式错误"}, status_code=400)
-    background_edges = [
-        BackgroundEdge(source=edge.get("source") or edge.get("from"), target=edge.get("target") or edge.get("to")).model_dump()
-        for edge in raw_edges
-        if isinstance(edge, dict) and (edge.get("source") or edge.get("from")) and (edge.get("target") or edge.get("to"))
-    ]
+    try:
+        background_edges = [
+            BackgroundEdge(source=edge.get("source") or edge.get("from"), target=edge.get("target") or edge.get("to")).model_dump()
+            for edge in raw_edges
+            if isinstance(edge, dict) and (edge.get("source") or edge.get("from")) and (edge.get("target") or edge.get("to"))
+        ]
+    except Exception as exc:
+        return JSONResponse({"error": f"背景知识边格式错误：{exc}"}, status_code=400)
     if len(selected) < 2:
         return JSONResponse({"error": "请至少选择两个变量"}, status_code=400)
     job = AnalysisJob(
@@ -381,7 +386,19 @@ async def causal_analysis_view(
     request.session["job_id"] = job.id
     request.session["selected_var"] = ",".join(selected)
     run_job(settings, job.id)
-    return {"completed": True, "job_id": job.id}
+    db.refresh(job)
+    if job.status == "failed":
+        return JSONResponse(
+            {
+                "completed": False,
+                "job_id": job.id,
+                "status": job.status,
+                "progress": job.progress,
+                "error": job.error_message or "分析失败",
+            },
+            status_code=500,
+        )
+    return {"completed": job.status == "completed", "job_id": job.id, "status": job.status, "progress": job.progress}
 
 
 @router.get("/big-model-analysis.html")
@@ -389,7 +406,15 @@ def big_model_analysis(request: Request, db: Session = Depends(get_db), settings
     user = _page_user(request, db, settings)
     if isinstance(user, RedirectResponse):
         return user
-    return _render(request, "big-model-analysis.html", user=user)
+    dataset, version = _current_dataset_version(request, db, user)
+    return _render(
+        request,
+        "big-model-analysis.html",
+        user=user,
+        dataset_id=dataset.id if dataset else "",
+        version_id=version.id if version else "",
+        job_id=request.session.get("job_id") or "",
+    )
 
 
 @router.get("/favorites.html")
@@ -608,9 +633,17 @@ def check_analysis_status(request: Request, db: Session = Depends(get_db), setti
     user = _require_user(request, db, settings)
     job_id = request.session.get("job_id")
     if not job_id:
-        return {"completed": False}
+        return {"completed": False, "status": "missing", "progress": 0, "error": None}
     job = db.get(AnalysisJob, job_id)
-    return {"completed": bool(job and job.owner_id == user.id and job.status == "completed")}
+    if not job or job.owner_id != user.id:
+        return {"completed": False, "status": "missing", "progress": 0, "error": "分析任务不存在"}
+    return {
+        "completed": job.status == "completed",
+        "status": job.status,
+        "progress": int(job.progress or 0),
+        "error": job.error_message,
+        "job_id": job.id,
+    }
 
 
 @router.get("/get-csv-data")

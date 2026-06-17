@@ -9,6 +9,14 @@
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
     <style>
 
+        /* Keep the shared sidebar behavior from global-style.css.
+           This page only constrains the content flex item so wide tables/graphs
+           cannot push into the sidebar area. */
+        body .container > .content {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
+
             /* 卡片式布局样式 */
         .card {
             background-color: #ffffff;
@@ -316,6 +324,660 @@
             color: #666;
         }
 
+        .causal-progress-shell {
+            background: #ffffff;
+            border: 1px solid #dfe6f2;
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 22px rgba(31, 45, 79, 0.06);
+            margin-bottom: 16px;
+        }
+
+        .progress-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #263856;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .causal-progress-shell #progress-bar-container {
+            height: 8px;
+            margin-bottom: 0;
+            background: #eef3fb;
+        }
+
+        .causal-progress-shell #progress-bar {
+            background: linear-gradient(90deg, #273c75, #2f8bc4);
+            border-radius: 999px;
+        }
+
+        .causal-step {
+            animation: stepFadeIn 0.22s ease;
+        }
+
+        @keyframes stepFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-card,
+        .analysis-control-card,
+        .result-card {
+            background: #ffffff;
+            border: 1px solid #dfe6f2;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(31, 45, 79, 0.07);
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+
+        .step-card:hover,
+        .analysis-control-card:hover,
+        .result-card:hover {
+            transform: none;
+            box-shadow: 0 10px 26px rgba(31, 45, 79, 0.08);
+        }
+
+        .step-heading,
+        .result-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .step-heading h2,
+        .result-heading h2 {
+            margin: 0;
+            color: #202938;
+            font-size: 20px;
+            line-height: 1.25;
+        }
+
+        .step-heading p,
+        .result-heading p {
+            margin: 4px 0 0;
+            color: #6a768b;
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+
+        .step-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .step-index {
+            flex: 0 0 auto;
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            background: #273c75;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            letter-spacing: 0;
+            box-shadow: 0 8px 18px rgba(39, 60, 117, 0.18);
+        }
+
+        .step-pill,
+        .result-pill {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: #edf4ff;
+            color: #273c75;
+            border: 1px solid #cddbf2;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        #variable-stats {
+            margin: 0;
+            padding: 0;
+            max-width: none;
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            font-family: inherit;
+        }
+
+        .stats-table-container {
+            max-height: 420px;
+            overflow: auto;
+            margin-top: 0;
+            border: 1px solid #e1e8f3;
+            border-radius: 10px;
+            background: #fbfcff;
+        }
+
+        .stats-table {
+            background: #ffffff;
+            box-shadow: none;
+            border-radius: 0;
+            table-layout: fixed;
+        }
+
+        .stats-table thead {
+            background: #273c75;
+            color: white;
+        }
+
+        .stats-table th {
+            padding: 11px 12px;
+            font-size: 13px;
+            border-bottom: 0;
+            text-align: left;
+        }
+
+        .stats-table td {
+            padding: 10px 12px;
+            font-size: 13px;
+            text-align: left;
+            border-bottom: 1px solid #edf1f7;
+            color: #263856;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats-table tbody tr:nth-child(odd),
+        .stats-table tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+        .stats-table tbody tr:hover {
+            background-color: #f3f7ff;
+        }
+
+        .stats-table tbody tr.is-selected {
+            background: #eaf3ff;
+        }
+
+        .stats-table tbody tr.is-disabled {
+            color: #9aa5b8;
+            background: #fafbfe;
+        }
+
+        .stats-table td input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #273c75;
+        }
+
+        .type-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 800;
+            background: #eaf7f0;
+            color: #18704a;
+        }
+
+        .type-chip.categorical {
+            background: #fff4dc;
+            color: #9a6200;
+        }
+
+        .step-actions,
+        .analysis-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .analysis-actions {
+            margin-top: 0;
+        }
+
+        .analysis-actions .button,
+        .analysis-actions .button_mid {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        button.next-step-btn,
+        .button_mid,
+        .button {
+            min-height: 38px;
+            padding: 9px 16px;
+            border-radius: 8px;
+            background: #273c75;
+            color: #ffffff;
+            border: none;
+            font-size: 14px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(39, 60, 117, 0.16);
+            cursor: pointer;
+        }
+
+        button.next-step-btn:hover,
+        .button_mid:hover,
+        .button:hover {
+            background: #324b8b;
+        }
+
+        .button.secondary {
+            background: #eef3fb;
+            color: #273c75;
+            box-shadow: none;
+            border: 1px solid #d8e2f1;
+        }
+
+        .knowledge-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: #5d6b82;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .knowledge-toolbar #knowledge-hint {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .knowledge-actions {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .knowledge-toolbar button {
+            min-height: 32px;
+            padding: 7px 10px;
+            border-radius: 7px;
+            border: 1px solid #d8e2f1;
+            color: #273c75;
+            background: #f7faff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .knowledge-toolbar .knowledge-clear-btn {
+            color: #43516b;
+            background: #f7faff;
+        }
+
+        .knowledge-toolbar .knowledge-next-btn {
+            min-height: 34px;
+            margin: 0;
+            color: #ffffff;
+            background: #273c75;
+            border-color: #273c75;
+            box-shadow: 0 8px 18px rgba(39, 60, 117, 0.16);
+        }
+
+        .knowledge-toolbar .knowledge-next-btn:hover {
+            background: #324b8b;
+        }
+
+        #network,
+        #graph-container {
+            width: 100%;
+            height: 420px;
+            min-height: 420px;
+            border: 1px dashed #c8d4e7;
+            border-radius: 12px;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(47, 139, 196, 0.08), transparent 28%),
+                linear-gradient(180deg, #fbfdff, #f7faff);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
+        }
+
+        .upload-row {
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .algorithm-label {
+            margin: 0;
+            color: #263856;
+            font-weight: 800;
+        }
+
+        .upload-button {
+            min-width: 160px;
+            background: #f8fbff;
+            color: #263856;
+            border: 1px solid #ccd8e9;
+            font-weight: 800;
+        }
+
+        .analysis-control-card {
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: minmax(240px, auto) minmax(420px, 1fr);
+            align-items: center;
+            column-gap: 18px;
+        }
+
+        .analysis-control-card .step-heading {
+            margin-bottom: 0;
+        }
+
+        .analysis-control-card .step-index {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .analysis-control-card .step-heading h2 {
+            font-size: 17px;
+        }
+
+        .analysis-control-card .step-heading p {
+            display: none;
+        }
+
+        .analysis-runbar {
+            display: grid;
+            grid-template-columns: auto minmax(150px, 240px) 1fr;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .analysis-runbar .algorithm-label {
+            white-space: nowrap;
+        }
+
+        .analysis-runbar .analysis-actions {
+            justify-content: flex-end;
+        }
+
+        .analysis-status {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            background: #f5f8fd;
+            border: 1px solid #e2e9f4;
+            color: #5d6b82;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .analysis-status.success {
+            background: #ecf9f3;
+            border-color: #bee7d3;
+            color: #19744d;
+        }
+
+        .analysis-status.error {
+            background: #fff1f1;
+            border-color: #f3c8c8;
+            color: #b13b3b;
+        }
+
+        .global-status {
+            margin: -4px 0 16px;
+        }
+
+        #analysis-status {
+            display: none;
+        }
+
+        @media (max-width: 1180px) {
+            .analysis-control-card {
+                grid-template-columns: 1fr;
+                row-gap: 10px;
+            }
+
+            .analysis-runbar {
+                grid-template-columns: auto minmax(150px, 220px);
+            }
+
+            .analysis-runbar .analysis-actions {
+                grid-column: 1 / -1;
+                justify-content: flex-start;
+            }
+        }
+
+        .result-content {
+            --result-table-width: clamp(540px, 38%, 720px);
+            display: grid;
+            grid-template-columns: minmax(500px, var(--result-table-width)) 14px minmax(420px, 1fr);
+            align-items: stretch;
+            gap: 0;
+        }
+
+        .result-panel {
+            min-width: 0;
+            border: 1px solid #dfe8f5;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 16px 38px rgba(31,45,79,0.08);
+        }
+
+        .result-panel-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 16px;
+            border-bottom: 1px solid #edf2f8;
+            background: linear-gradient(180deg, #ffffff, #f7faff);
+            color: #1f2d4a;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .result-panel-title small {
+            color: #718098;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .result-table-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-graph-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-resizer {
+            align-self: stretch;
+            width: 14px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            cursor: col-resize;
+            position: relative;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .result-resizer::before {
+            content: "";
+            position: absolute;
+            top: 18px;
+            bottom: 18px;
+            left: 50%;
+            width: 4px;
+            transform: translateX(-50%);
+            border-radius: 999px;
+            background: #d9e3f1;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
+            transition: background 0.18s ease, width 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .result-resizer:hover,
+        .result-resizer:focus-visible {
+            background: transparent;
+            transform: none;
+            outline: none;
+        }
+
+        .result-resizer:hover::before,
+        .result-resizer:focus-visible::before,
+        body.is-result-resizing .result-resizer::before {
+            width: 6px;
+            background: linear-gradient(180deg, #273c75, #2f8bc4);
+            box-shadow: 0 10px 24px rgba(39,60,117,0.20);
+        }
+
+        body.is-result-resizing {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        #csvTableContainer {
+            flex: 1 1 auto;
+            max-width: none;
+            max-height: 560px;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: auto;
+        }
+
+        .csv-table {
+            width: 100%;
+            min-width: 660px;
+            box-shadow: none;
+            table-layout: auto;
+        }
+
+        .csv-table th,
+        .csv-table td {
+            padding: 11px 14px;
+            font-size: 13px;
+            border: 0;
+            border-bottom: 1px solid #edf1f7;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .csv-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: #273c75;
+            color: #ffffff;
+            letter-spacing: 0;
+        }
+
+        .csv-table th:nth-child(n+3),
+        .csv-table td:nth-child(n+3) {
+            text-align: center;
+        }
+
+        .csv-table tbody tr:hover td {
+            background: #f6f9ff;
+        }
+
+        #graph-container {
+            flex: 1 1 auto;
+            max-width: none;
+            height: 560px;
+        }
+
+        #graph-container.result-graph-shell {
+            position: relative;
+            min-height: 560px;
+            height: 560px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 0;
+            background:
+                radial-gradient(circle at 24% 20%, rgba(47, 139, 196, 0.16), transparent 32%),
+                radial-gradient(circle at 86% 78%, rgba(255, 149, 0, 0.12), transparent 30%),
+                linear-gradient(135deg, #fbfdff 0%, #f2f7ff 50%, #ffffff 100%);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.78);
+        }
+
+        #graph-container.result-graph-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(39,60,117,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(39,60,117,0.035) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: radial-gradient(circle at center, black 0%, transparent 76%);
+        }
+
+        #graph-container.result-graph-shell::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, rgba(39,60,117,0.04), transparent 18%, transparent 82%, rgba(39,60,117,0.04)),
+                linear-gradient(180deg, rgba(255,255,255,0.35), transparent 35%);
+            z-index: 1;
+        }
+
+        #graph-container.result-graph-shell .vis-network {
+            position: relative;
+            z-index: 2;
+        }
+
+        .graph-empty {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6a768b;
+            font-weight: 800;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .graph-empty small {
+            display: block;
+            margin-top: 8px;
+            color: #8a96aa;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1100px) {
+            .result-content {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .result-resizer {
+                display: none;
+            }
+
+            #csvTableContainer {
+                max-width: none;
+                flex-basis: auto;
+            }
+        }
+
 
     </style>
 </head>
@@ -353,65 +1015,132 @@
             <p class="error-message">{{ error_message }}</p>
         {% endif %}
         <!-- 进度条 -->
-        <div id="progress-bar-container">
-            <div id="progress-bar"></div>
+        <div class="causal-progress-shell">
+            <div class="progress-meta">
+                <span id="progress-label">数据集配置</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
         </div>
+        <div id="causal-global-status" class="analysis-status global-status">请选择至少两个数值字段，进入背景知识编辑后运行算法。</div>
 
         <div class="main-content">
         <!-- 1. 数据集配置 -->
-        <section id="step-1" class="step" data-step="1">
-            <h2>1. 数据集配置</h2>
-            <div id="variable-stats">
-                <div class="stats-table-container">
-                    <!-- 动态填充变量统计信息的表格 -->
+        <section id="step-1" class="step causal-step" data-step="1">
+            <div class="step-card dataset-config-card">
+                <div class="step-heading">
+                    <span class="step-index">01</span>
+                    <div class="step-title">
+                        <h2>数据集配置</h2>
+                        <p>选择参与 PC/GIES 因果发现的数值字段，类别字段会保留展示但不参与算法。</p>
+                    </div>
+                    <span class="step-pill" id="selected-count">已选 0</span>
                 </div>
-            </div>            
-            <button class="next-step-btn" onclick="nextStep()">下一步</button>
+                <div id="variable-stats">
+                    <div class="stats-table-container">
+                        <!-- 动态填充变量统计信息的表格 -->
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="next-step-btn" onclick="nextStep()">下一步：编辑背景知识</button>
+                </div>
+            </div>
         </section>
 
         <!-- 第二部分：编辑函数依赖 -->
-        <section id="step-2" class="step" data-step="2" style="display: none;">
-            <h2>2. 编辑函数依赖</h2>
-
-            <!-- 用于显示图形的容器 -->
-            <div id="network" style="height: 400px;"></div>
-
-            <button class="next-step-btn" onclick="nextStep()">下一步</button>
+        <section id="step-2" class="step causal-step" data-step="2" style="display: none;">
+            <div class="step-card">
+                <div class="step-heading">
+                    <span class="step-index">02</span>
+                    <div class="step-title">
+                        <h2>编辑背景知识</h2>
+                        <p>在图中连线可加入必选方向边，算法会把这些边作为背景知识。</p>
+                    </div>
+                    <span class="step-pill" id="edge-count">背景边 0</span>
+                </div>
+                <div class="knowledge-toolbar">
+                    <span id="knowledge-hint">选择节点后添加方向边；也可以直接跳过进入分析。</span>
+                    <div class="knowledge-actions">
+                        <button type="button" class="knowledge-clear-btn" onclick="clearBackgroundEdges()"><i class="fas fa-eraser"></i> 清空背景边</button>
+                        <button type="button" class="next-step-btn knowledge-next-btn" onclick="nextStep()">下一步：选择算法</button>
+                    </div>
+                </div>
+                <!-- 用于显示图形的容器 -->
+                <div id="network"></div>
+            </div>
         </section>
 
     
         <!-- 3. 上传区和算法选择 -->
-        <section id="step-3" class="step" data-step="3" style="display: none;">
-        <div class="card">
+        <section id="step-3" class="step causal-step" data-step="3" style="display: none;">
+        <div class="card analysis-control-card">
+            <div class="step-heading">
+                <span class="step-index">03</span>
+                <div class="step-title">
+                    <h2>选择算法并运行</h2>
+                    <p>运行后会生成任务并返回边表与因果图，背景知识会随任务一起提交。</p>
+                </div>
+                <span class="step-pill" id="algorithm-pill">待运行</span>
+            </div>
             <form enctype="multipart/form-data" id="uploadForm" onsubmit="startAnalysis(event)">
-                <div class="upload-row">
-                    <label for="algorithm" class="algorithm-label">选择算法:    </label>
+                <div class="analysis-runbar">
+                    <label for="algorithm" class="algorithm-label">选择算法</label>
                     <select name="algorithm" id="algorithm" class="upload-button">
                         <option value="pc">PC算法</option>
                         <option value="gies">GIES算法</option>
                     </select>
-                    <button type="submit" class="button_mid" id="analyzeButton">数据驱动分析</button>
-                    <button class="button" onclick="location.href='big-model-analysis.html'">语义引擎优化</button>
+                    <div class="analysis-actions">
+                        <button type="submit" class="button_mid" id="analyzeButton">数据驱动分析</button>
+                        <button type="button" class="button secondary" onclick="location.href='big-model-analysis.html'">语义引擎优化</button>
+                    </div>
                 </div>
             </form>
+            <div id="analysis-status" class="analysis-status">请选择算法后开始分析。PC/GIES 会使用当前选中字段和背景边。</div>
         </div>
         
         <!-- 分析结果卡片 -->
-        <div class="card" id="resultCard" >
-            <h2>分析结果</h2>
+        <div class="card result-card" id="resultCard" style="display: none;">
+            <div class="result-heading">
+                <div>
+                    <h2>分析结果</h2>
+                    <p>左侧为算法输出边表，右侧为可拖拽缩放的因果图。</p>
+                </div>
+                <span class="result-pill" id="result-summary">0 条边</span>
+            </div>
             <div class="result-content">
                 <!-- 左侧数据表 -->
-                <div id="csvTableContainer">
-                    <table class="csv-table" id="csvTable">
-                        <thead>
-                            <tr id="tableHeaders"></tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+                <div class="result-panel result-table-panel">
+                    <div class="result-panel-title">
+                        <span>因果边表</span>
+                        <small>算法输出</small>
+                    </div>
+                    <div id="csvTableContainer">
+                        <table class="csv-table" id="csvTable">
+                            <thead>
+                                <tr id="tableHeaders"></tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <button type="button" class="result-resizer" id="resultResizer" aria-label="拖动调整因果边表和因果图谱宽度"></button>
         
                 <!-- 右侧可视化图 -->
-                <div id="graph-container" class="graph-placeholder_1"></div>
+                <div class="result-panel result-graph-panel">
+                    <div class="result-panel-title">
+                        <span>因果图谱</span>
+                        <small>拖拽节点 · 滚轮缩放 · 双击复位</small>
+                    </div>
+                    <div id="graph-container" class="graph-placeholder_1 result-graph-shell">
+                        <div class="graph-empty">
+                            因果图将在分析完成后显示
+                            <small>节点可拖动，滚轮可缩放。</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>   
 
@@ -439,10 +1168,22 @@
             })
             .catch(error => {
                 console.error('数据加载错误:', error);
-                document.getElementById('dataset-config').innerHTML = '<p>数据加载失败，请稍后重试。</p>';
+                const tableContainer = document.querySelector('#variable-stats .stats-table-container');
+                if (tableContainer) {
+                    tableContainer.innerHTML = '<div class="graph-empty">数据加载失败<small>请确认已上传或选择数据集后重试。</small></div>';
+                }
             });
 
-            function renderDataset(data) {
+        function formatStatNumber(value) {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric.toFixed(2) : '-';
+        }
+
+        function isNumericVariable(variable) {
+            return variable.type === 'numerical' || variable.type === 'numeric' || variable.type === 'number';
+        }
+
+        function renderDataset(data) {
             const variableStats = document.getElementById('variable-stats');
             const tableContainer = variableStats.querySelector('.stats-table-container');
 
@@ -452,12 +1193,12 @@
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>选择</th> <!-- 新增选择列 -->
+                        <th style="width: 68px;">选择</th>
                         <th>变量</th>
-                        <th>类型</th>
-                        <th>平均值</th>
-                        <th>标准差</th>
-                        <th>中位数</th>
+                        <th style="width: 120px;">类型</th>
+                        <th style="width: 110px;">平均值</th>
+                        <th style="width: 110px;">标准差</th>
+                        <th style="width: 110px;">中位数</th>
                     </tr>
                 </thead>
                 <tbody id="stats-body">
@@ -471,36 +1212,49 @@
             // 将新表格添加到容器中
             tableContainer.appendChild(table);
 
+            const items = Array.isArray(data) ? data : [];
+            if (!items.length) {
+                tableContainer.innerHTML = '<div class="graph-empty">暂无字段信息<small>请先上传数据集。</small></div>';
+                updateSelectedSummary();
+                return;
+            }
+
             // 遍历每个变量并填充数据
-            data.forEach(variable => {
+            items.forEach(variable => {
+                const canUse = isNumericVariable(variable);
                 // 创建表格行
                 const row = document.createElement('tr');
+                row.classList.toggle('is-disabled', !canUse);
 
                 // 创建勾选框单元格，并设置勾选框事件
                 const checkboxCell = document.createElement('td');
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
+                checkbox.disabled = !canUse;
+                checkbox.title = canUse ? '加入因果分析变量' : 'PC/GIES 当前仅支持数值字段';
                 checkbox.addEventListener('change', function () {
                     // 勾选框状态变化时执行的操作
                     updateCheckedVariables(variable.name, checkbox.checked);
+                    row.classList.toggle('is-selected', checkbox.checked);
                 });
                 checkboxCell.appendChild(checkbox);
 
                 // 创建其它单元格并添加变量统计信息
                 const nameCell = document.createElement('td');
                 nameCell.textContent = variable.name;
+                nameCell.title = variable.name;
 
                 const typeCell = document.createElement('td');
-                typeCell.textContent = variable.type === 'categorical' ? '类别型' : '数值型';
+                typeCell.innerHTML = `<span class="type-chip ${canUse ? '' : 'categorical'}">${canUse ? '数值型' : '类别型'}</span>`;
 
                 const meanCell = document.createElement('td');
-                meanCell.textContent = (variable.mean || 0).toFixed(2);
+                meanCell.textContent = formatStatNumber(variable.mean);
 
                 const stdDevCell = document.createElement('td');
-                stdDevCell.textContent = (variable.stdDev || 0).toFixed(2);
+                stdDevCell.textContent = formatStatNumber(variable.stdDev);
 
                 const medianCell = document.createElement('td');
-                medianCell.textContent = (variable.median || 0).toFixed(2);
+                medianCell.textContent = formatStatNumber(variable.median);
 
                 // 将所有单元格添加到行中
                 row.appendChild(checkboxCell);
@@ -514,337 +1268,654 @@
                 table.querySelector('tbody').appendChild(row);
 
             });
+            updateSelectedSummary();
         }
 
         // 存储被勾选的变量
         let checkedVariables = [];
+        let background_edge = [];
+        let backgroundNetwork = null;
+        let currentResultNetwork = null;
+        let progressTimer = null;
+        let intervalId = null;
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function updateSelectedSummary() {
+            const selectedCount = document.getElementById('selected-count');
+            if (selectedCount) {
+                selectedCount.textContent = `已选 ${checkedVariables.length}`;
+            }
+        }
+
+        function updateEdgeSummary() {
+            const edgeCount = document.getElementById('edge-count');
+            if (edgeCount) {
+                edgeCount.textContent = `背景边 ${background_edge.length}`;
+            }
+        }
+
+        function showCausalStatus(message, type = '') {
+            const status = document.getElementById('causal-global-status');
+            if (!status) {
+                return;
+            }
+            const baseClass = 'analysis-status global-status';
+            status.textContent = message;
+            status.className = type ? `${baseClass} ${type}` : baseClass;
+        }
+
+        function setProgress(percent, label) {
+            const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+            const bar = document.getElementById('progress-bar');
+            const percentLabel = document.getElementById('progress-percent');
+            const textLabel = document.getElementById('progress-label');
+            if (bar) {
+                bar.style.width = `${safePercent}%`;
+            }
+            if (percentLabel) {
+                percentLabel.textContent = `${safePercent}%`;
+            }
+            if (textLabel && label) {
+                textLabel.textContent = label;
+            }
+        }
 
         // 更新被勾选的变量
         function updateCheckedVariables(variableName, isChecked) {
-            if (isChecked) {
-                checkedVariables.push(variableName); // 添加勾选的变量
-            } else {
-                const index = checkedVariables.indexOf(variableName);
-                if (index > -1) {
-                    checkedVariables.splice(index, 1); // 移除未勾选的变量
-                }
+            if (isChecked && !checkedVariables.includes(variableName)) {
+                checkedVariables.push(variableName);
+            } else if (!isChecked) {
+                checkedVariables = checkedVariables.filter(item => item !== variableName);
+                background_edge = background_edge.filter(edge => edge.from !== variableName && edge.to !== variableName);
+            }
+            updateSelectedSummary();
+            updateEdgeSummary();
+        }
+
+        function backgroundEdgeId(edge) {
+            return `background-${encodeURIComponent(edge.from)}-${encodeURIComponent(edge.to)}`;
+        }
+
+        function createNetworkGraph() {
+            const container = document.getElementById('network');
+            if (!container) {
+                return;
+            }
+            if (backgroundNetwork) {
+                backgroundNetwork.destroy();
+                backgroundNetwork = null;
+            }
+            background_edge = background_edge.filter(edge => checkedVariables.includes(edge.from) && checkedVariables.includes(edge.to));
+            updateEdgeSummary();
+            if (checkedVariables.length < 2) {
+                container.innerHTML = '<div class="graph-empty">请先选择至少两个数值字段<small>返回数据集配置后勾选变量。</small></div>';
+                return;
             }
 
-            console.log('被勾选的变量:', checkedVariables);
-        }
-    
-        let selectedNode = null;  // 用于存储第一个选中的节点
-        let waitingForSecondNode = false; // 标记是否等待用户选择第二个节点
-        let background_edge = [];
-        function createNetworkGraph() {
-            // 定义节点和边
-            let nodes = new vis.DataSet([]);
-            let edges = new vis.DataSet([]);
-            console.log(checkedVariables);
-
-            // 基于选中的变量生成节点
-            checkedVariables.forEach((variable, index) => {
-                nodes.add({ id: index, label: variable });
-                console.log(`添加节点：${variable}`);
-            });
-
-            // 创建网络图的配置
-            let container = document.getElementById('network');
-            let data = {
-                nodes: nodes,
-                edges: edges
-            };
-            
-            let options = {
+            const nodes = new vis.DataSet(checkedVariables.map((variable, index) => ({
+                id: variable,
+                label: variable,
+                level: index % 3,
+            })));
+            const edges = new vis.DataSet(background_edge.map((edge, index) => ({
+                id: backgroundEdgeId(edge),
+                from: edge.from,
+                to: edge.to,
+                arrows: 'to',
+                label: 'required'
+            })));
+            const data = { nodes, edges };
+            const options = {
+                nodes: {
+                    shape: 'box',
+                    margin: { top: 10, right: 14, bottom: 10, left: 14 },
+                    borderWidth: 1.5,
+                    shadow: { enabled: true, color: 'rgba(31,45,79,0.12)', size: 8, x: 0, y: 4 },
+                    font: { size: 14, face: 'Arial', color: '#24324b', bold: { color: '#24324b' } },
+                    color: {
+                        background: '#ffffff',
+                        border: '#c9d5e8',
+                        highlight: { background: '#eaf3ff', border: '#273c75' },
+                        hover: { background: '#f4f8ff', border: '#2f8bc4' }
+                    }
+                },
                 edges: {
-                    smooth: {
-                        type: 'continuous',  // 连续平滑边
-                    },
-                    arrows: { to: { enabled: true, scaleFactor: 0.8 } }, // 添加箭头
-                    color: { color: '#000000', highlight: '#ff0000' }
+                    arrows: { to: { enabled: true, scaleFactor: 0.9 } },
+                    color: { color: '#4e6388', highlight: '#273c75', hover: '#2f8bc4' },
+                    width: 2,
+                    smooth: { type: 'cubicBezier', roundness: 0.24 },
+                    font: { size: 11, color: '#6a768b', strokeWidth: 3, strokeColor: '#fff' }
+                },
+                physics: {
+                    enabled: true,
+                    stabilization: { iterations: 160 },
+                    barnesHut: { gravitationalConstant: -3600, springLength: 150, springConstant: 0.045 }
                 },
                 interaction: {
-                    dragNodes: true, // 支持拖拽节点
-                    dragView: true,  // 支持拖拽整个视图
-                    zoomView: true,  // 支持缩放
+                    dragNodes: true,
+                    dragView: true,
+                    hover: true,
+                    multiselect: true,
+                    zoomView: true
                 },
                 manipulation: {
-                    enabled: true,  // 启用交互模式
-                    addNode: false,  // 禁止添加节点
-                    addNode: false, // 禁止添加节点
-                    deleteNode: function (data, callback) {
-                        // 阻止节点被删除
-                        console.log(`阻止删除节点：${checkedVariables[data.nodes]}`);
-                        callback(false);  // 不删除节点
-                    },
-                    deleteEdge: true,  // 允许删除边
-                    
+                    enabled: true,
+                    initiallyActive: false,
+                    addNode: false,
+                    deleteNode: false,
+                    editEdge: false,
                     addEdge: function(data, callback) {
-                        // 如果第一次选择节点
-                        if (!waitingForSecondNode) {
-                            // 记录第一个节点
-                            selectedNode = data.from;
-                            waitingForSecondNode = true;
-                            console.log(`已选择第一个节点：${checkedVariables[selectedNode]}`);
-                            callback();  // 继续等待第二个节点
-                        } else {
-                            // 确保第二个节点不等于第一个节点
-                            if (data.to === selectedNode) {
-                                console.log('不能添加自边，请选择不同的节点。');
-                                waitingForSecondNode = false; // 重新开始
-                            } else {
-                                // 确定从节点和到节点不同，可以添加边
-                                let fromNode = checkedVariables[selectedNode];
-                                let toNode = checkedVariables[data.to];
-                                console.log(`添加边：${fromNode} -> ${toNode}`);
-                                edges.add({
-                                    from: selectedNode,
-                                    to: data.to
-                                });
-                                background_edge.push({ from: fromNode, to: toNode });
-                                waitingForSecondNode = false;  // 重置状态
-                                selectedNode = null;  // 清空已选节点
-                                callback();
-                            }
+                        if (!data.from || !data.to || data.from === data.to) {
+                            showCausalStatus('背景知识不能添加自边，请选择两个不同变量。', 'error');
+                            callback(null);
+                            return;
                         }
+                        const duplicate = background_edge.some(edge => edge.from === data.from && edge.to === data.to);
+                        if (duplicate) {
+                            showCausalStatus('这条背景边已存在。', 'error');
+                            callback(null);
+                            return;
+                        }
+                        const edge = { from: data.from, to: data.to };
+                        background_edge.push(edge);
+                        data.id = backgroundEdgeId(edge);
+                        data.arrows = 'to';
+                        data.label = 'required';
+                        updateEdgeSummary();
+                        showCausalStatus(`已加入背景边：${data.from} → ${data.to}`, 'success');
+                        callback(data);
+                    },
+                    deleteEdge: function(data, callback) {
+                        const deletedIds = new Set(data.edges || []);
+                        background_edge = background_edge.filter(edge => !deletedIds.has(backgroundEdgeId(edge)));
+                        updateEdgeSummary();
+                        callback(data);
                     }
                 }
             };
-
-            // 创建网络图实例
-            let network = new vis.Network(container, data, options);
+            backgroundNetwork = new vis.Network(container, data, options);
+            backgroundNetwork.once('stabilizationIterationsDone', function() {
+                backgroundNetwork.setOptions({ physics: false });
+                backgroundNetwork.fit({ animation: { duration: 260, easingFunction: 'easeInOutQuad' } });
+            });
         }
 
+        function clearBackgroundEdges() {
+            background_edge = [];
+            updateEdgeSummary();
+            createNetworkGraph();
+            showCausalStatus('背景边已清空，算法将仅依据数据发现因果结构。');
+        }
 
-    // 渲染 CSV 表格
-    function renderTable(csvData) {
-        const tableHeaders = document.getElementById("tableHeaders");
-        const tableBody = document.getElementById("tableBody");
+        // 渲染 CSV 表格
+        function renderTable(csvData) {
+            const tableHeaders = document.getElementById("tableHeaders");
+            const tableBody = document.getElementById("tableBody");
+            const rows = Array.isArray(csvData) ? csvData : [];
 
-        tableHeaders.innerHTML = '';
-        tableBody.innerHTML = '';
+            tableHeaders.innerHTML = '';
+            tableBody.innerHTML = '';
 
-        if (csvData.length > 0) {
-            Object.keys(csvData[0]).forEach(col => {
+            if (!rows.length) {
+                tableHeaders.innerHTML = '<th>结果</th>';
+                tableBody.innerHTML = '<tr><td>算法未返回显著方向边。</td></tr>';
+                return;
+            }
+
+            Object.keys(rows[0]).forEach(col => {
                 const th = document.createElement("th");
                 th.textContent = col;
                 tableHeaders.appendChild(th);
             });
+
+            rows.forEach(row => {
+                const tr = document.createElement("tr");
+                Object.values(row).forEach(value => {
+                    const td = document.createElement("td");
+                    td.textContent = value ?? '-';
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
         }
 
-        csvData.forEach(row => {
-            const tr = document.createElement("tr");
-            Object.values(row).forEach(value => {
-                const td = document.createElement("td");
-                td.textContent = value;
-                tr.appendChild(td);
+        // 渲染因果图
+        function renderGraph(rawNodes, rawEdges) {
+            const container = document.getElementById('graph-container');
+            if (!container) {
+                return;
+            }
+            if (currentResultNetwork) {
+                currentResultNetwork.destroy();
+                currentResultNetwork = null;
+            }
+
+            const nodeLabels = Array.isArray(rawNodes) ? rawNodes : [];
+            const edgeItems = Array.isArray(rawEdges) ? rawEdges : [];
+            if (!nodeLabels.length) {
+                container.classList.remove('has-graph');
+                container.innerHTML = '<div class="graph-empty">暂无可视化结果<small>请先完成数据驱动分析。</small></div>';
+                return;
+            }
+
+            container.classList.add('has-graph');
+            container.innerHTML = '';
+            const degreeMap = nodeLabels.reduce((map, label) => {
+                map[label] = { in: 0, out: 0 };
+                return map;
+            }, {});
+            edgeItems.forEach(edge => {
+                if (degreeMap[edge.source]) {
+                    degreeMap[edge.source].out += 1;
+                }
+                if (degreeMap[edge.target]) {
+                    degreeMap[edge.target].in += 1;
+                }
             });
-            tableBody.appendChild(tr);
-        });
-    }
 
-    // 渲染三维图表
-    function renderGraph(rawNodes, rawEdges) {
-        // 将原始节点数据转换为 Vis.js 格式
-        const nodes = rawNodes.map((label, index) => ({
-            id: String(index), // 使用索引作为 id
-            label: label,      // 使用原始值作为节点标签
-        }));
+            function nodeGroup(label) {
+                const degree = degreeMap[label] || { in: 0, out: 0 };
+                if (degree.out > 0 && degree.in === 0) {
+                    return 'driver';
+                }
+                if (degree.in > 0 && degree.out === 0) {
+                    return 'outcome';
+                }
+                if (degree.in > 0 && degree.out > 0) {
+                    return 'bridge';
+                }
+                return 'isolated';
+            }
 
-        // 构建节点标签到 ID 的映射表
-        const labelToId = nodes.reduce((map, node) => {
-            map[node.label] = node.id;
-            return map;
-        }, {});
+            const nodes = nodeLabels.map((label, index) => ({
+                id: label,
+                label: label,
+                group: nodeGroup(label),
+                value: 18 + Math.min(14, ((degreeMap[label]?.in || 0) + (degreeMap[label]?.out || 0)) * 4),
+                mass: 1 + Math.min(1.1, ((degreeMap[label]?.in || 0) + (degreeMap[label]?.out || 0)) * 0.16),
+                title: `<strong>${escapeHtml(label)}</strong><br>入度：${degreeMap[label]?.in || 0}<br>出度：${degreeMap[label]?.out || 0}`
+            }));
+            const edges = edgeItems
+                .filter(edge => nodeLabels.includes(edge.source) && nodeLabels.includes(edge.target))
+                .map((edge, index) => ({
+                    id: `result-${index}`,
+                    from: edge.source,
+                    to: edge.target,
+                    arrows: { to: { enabled: true, scaleFactor: 0.82, type: 'arrow' } },
+                    width: 1.65,
+                    title: `${escapeHtml(edge.source)} → ${escapeHtml(edge.target)}`,
+                    color: { color: '#687b98', highlight: '#273c75', hover: '#2f8bc4', opacity: 0.72 },
+                    smooth: { enabled: true, type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.34 },
+                    shadow: { enabled: true, color: 'rgba(31,45,79,0.08)', size: 4, x: 0, y: 2 }
+                }));
 
-        // 将原始边数据的 source 和 target 转换为节点的 id
-        const edges = rawEdges.map(edge => ({
-            from: labelToId[edge.source], // 使用映射找到对应的 from id
-            to: labelToId[edge.target],   // 使用映射找到对应的 to id
-            arrows: {
-                to: { enabled: true, scaleFactor: 1.2 }, // 美化箭头
-            },
-            color: {
-                color: '#000000',      // 边默认颜色改为黑色
-                highlight: '#FF5733', // 高亮颜色
-                hover: '#2ECC71',     // 悬浮颜色
-            },
-            width: 2, // 边宽度
-        }));
-
-        console.log('Processed Nodes:', nodes);
-        console.log('Processed Edges:', edges);
-
-        // 配置 Vis.js 图的选项
-        const options = {
-            nodes: {
-                shape: 'dot', // 节点为圆形点
-                size: 15, // 节点大小
-                font: {
-                    size: 18,   // 标签字体大小
-                    color: '#2C3E50', // 标签颜色
-                    face: 'Arial',    // 字体样式
-                },
-                color: {
-                    background: '#3498DB', // 节点背景色
-                    border: '#2980B9',    // 节点边框色
-                    highlight: {
-                        background: '#1ABC9C', // 高亮背景色
-                        border: '#16A085',    // 高亮边框色
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    scaling: {
+                        min: 24,
+                        max: 42,
+                        label: { enabled: true, min: 13, max: 17 }
                     },
-                    hover: {
-                        background: '#F1C40F', // 悬浮背景色
-                        border: '#F39C12',    // 悬浮边框色
+                    borderWidth: 3,
+                    borderWidthSelected: 4,
+                    shadow: { enabled: true, color: 'rgba(31,45,79,0.16)', size: 14, x: 0, y: 7 },
+                    font: {
+                        size: 14,
+                        face: 'Avenir Next, Segoe UI, sans-serif',
+                        color: '#233149',
+                        vadjust: -6,
+                        strokeWidth: 5,
+                        strokeColor: 'rgba(255,255,255,0.98)'
                     },
+                    color: {
+                        background: '#ffffff',
+                        border: '#2f8bc4',
+                        highlight: { background: '#eaf3ff', border: '#273c75' },
+                        hover: { background: '#fff8e8', border: '#ff9500' }
+                    }
                 },
-                borderWidth: 2, // 节点边框宽度
-            },
-            edges: {
-                arrows: { to: { enabled: true, scaleFactor: 1.2 } }, // 美化箭头
-                color: {
-                    color: '#000000',      // 默认黑色边
-                    highlight: '#E74C3C', // 高亮红色边
-                    hover: '#8E44AD',     // 悬浮紫色边
+                groups: {
+                    driver: {
+                        color: {
+                            background: '#fff3d6',
+                            border: '#f28a00',
+                            highlight: { background: '#ffedbf', border: '#c86c00' },
+                            hover: { background: '#fff7e4', border: '#f28a00' }
+                        }
+                    },
+                    bridge: {
+                        color: {
+                            background: '#e5f8f3',
+                            border: '#12967f',
+                            highlight: { background: '#daf4ef', border: '#0b7567' },
+                            hover: { background: '#effcf8', border: '#12967f' }
+                        }
+                    },
+                    outcome: {
+                        color: {
+                            background: '#e8f1ff',
+                            border: '#273c75',
+                            highlight: { background: '#dce9ff', border: '#1e2b52' },
+                            hover: { background: '#f2f6ff', border: '#273c75' }
+                        }
+                    },
+                    isolated: {
+                        color: {
+                            background: '#f5f7fb',
+                            border: '#9aa8bf',
+                            highlight: { background: '#eef3fb', border: '#60718d' }
+                        }
+                    }
                 },
-                smooth: {
-                    type: 'dynamic', // 动态平滑曲线
+                edges: {
+                    arrows: { to: { enabled: true, scaleFactor: 0.82 } },
+                    color: { color: '#687b98', highlight: '#273c75', hover: '#2f8bc4', opacity: 0.72 },
+                    width: 1.65,
+                    hoverWidth: 2.35,
+                    selectionWidth: 2.8,
+                    smooth: { enabled: true, type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.34 },
+                    font: { size: 11, color: '#6a768b', strokeWidth: 3, strokeColor: '#ffffff' }
                 },
-                width: 2, // 边默认宽度
-            },
-            interaction: {
-                dragNodes: true, // 支持拖拽节点
-                zoomView: true,  // 支持缩放
-                dragView: true,  // 支持拖拽视图
-                hover: true,     // 节点悬浮显示
-            },
-            physics: {
-                enabled: true, // 启用物理引擎
-                stabilization: {
-                    iterations: 100, // 稳定布局迭代次数
+                interaction: {
+                    dragNodes: true,
+                    zoomView: true,
+                    dragView: true,
+                    hover: true,
+                    tooltipDelay: 100,
+                    multiselect: true,
+                    navigationButtons: false,
+                    keyboard: { enabled: false }
                 },
-            },
-        };
+                physics: {
+                    enabled: true,
+                    solver: 'hierarchicalRepulsion',
+                    stabilization: { enabled: true, iterations: 220, fit: true },
+                    hierarchicalRepulsion: {
+                        centralGravity: 0.0,
+                        springLength: 130,
+                        springConstant: 0.02,
+                        nodeDistance: 145,
+                        damping: 0.18,
+                        avoidOverlap: 0.85
+                    },
+                    adaptiveTimestep: true,
+                    minVelocity: 0.35
+                },
+                layout: {
+                    improvedLayout: true,
+                    randomSeed: 18,
+                    hierarchical: {
+                        enabled: true,
+                        direction: 'LR',
+                        sortMethod: 'directed',
+                        levelSeparation: 170,
+                        nodeSpacing: 150,
+                        treeSpacing: 190,
+                        blockShifting: true,
+                        edgeMinimization: true,
+                        parentCentralization: true
+                    }
+                }
+            };
 
-        // 渲染容器
-        const container = document.getElementById('graph-container');
+            currentResultNetwork = new vis.Network(container, {
+                nodes: new vis.DataSet(nodes),
+                edges: new vis.DataSet(edges)
+            }, options);
+            currentResultNetwork.once('stabilizationIterationsDone', function() {
+                currentResultNetwork.fit({ animation: { duration: 420, easingFunction: 'easeInOutQuad' } });
+            });
+            currentResultNetwork.on('doubleClick', function() {
+                currentResultNetwork.fit({ animation: { duration: 360, easingFunction: 'easeInOutQuad' } });
+            });
+            currentResultNetwork.on('dragEnd', function(params) {
+                if (params.nodes && params.nodes.length) {
+                    currentResultNetwork.redraw();
+                }
+            });
+        }
 
-        // 创建图形数据
-        const data = {
-            nodes: new vis.DataSet(nodes),
-            edges: new vis.DataSet(edges),
-        };
+        function initResultSplitter() {
+            const content = document.querySelector('.result-content');
+            const resizer = document.getElementById('resultResizer');
+            if (!content || !resizer || resizer.dataset.ready === 'true') {
+                return;
+            }
+            resizer.dataset.ready = 'true';
 
-        // 初始化网络图
-        const network = new vis.Network(container, data, options);
+            function clamp(value, min, max) {
+                return Math.min(Math.max(value, min), max);
+            }
 
-        // 调整布局
-        network.stabilize();
-    }
-    // 获取分析结果并显示
-    function fetchData() {
-        fetch('/get-csv-data')
-            .then(response => response.json())
-            .then(data => {
-                console.log("Data received:", data);
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    renderTable(data.csv_data);
-                    renderGraph(data.nodes, data.edges);
+            resizer.addEventListener('pointerdown', function(event) {
+                event.preventDefault();
+                const rect = content.getBoundingClientRect();
+                const minTable = Math.min(540, rect.width * 0.56);
+                const minGraph = Math.min(460, rect.width * 0.46);
+                const maxTable = Math.max(minTable, rect.width - minGraph - 18);
+
+                function handleMove(moveEvent) {
+                    const nextWidth = clamp(moveEvent.clientX - rect.left, minTable, maxTable);
+                    content.style.setProperty('--result-table-width', `${Math.round(nextWidth)}px`);
+                    if (currentResultNetwork) {
+                        window.requestAnimationFrame(() => currentResultNetwork.redraw());
+                    }
+                }
+
+                function handleUp() {
+                    document.body.classList.remove('is-result-resizing');
+                    window.removeEventListener('pointermove', handleMove);
+                    window.removeEventListener('pointerup', handleUp);
+                    if (currentResultNetwork) {
+                        currentResultNetwork.fit({ animation: { duration: 260, easingFunction: 'easeInOutQuad' } });
+                    }
+                }
+
+                document.body.classList.add('is-result-resizing');
+                resizer.setPointerCapture?.(event.pointerId);
+                window.addEventListener('pointermove', handleMove);
+                window.addEventListener('pointerup', handleUp, { once: true });
+            });
+        }
+
+        // 获取分析结果并显示
+        function fetchData() {
+            return fetch('/get-csv-data')
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok || data.error) {
+                        throw new Error(data.error || data.detail || '结果加载失败');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    const rows = Array.isArray(data.csv_data) ? data.csv_data : [];
+                    const edges = Array.isArray(data.edges) ? data.edges : [];
+                    renderTable(rows);
+                    renderGraph(data.nodes, edges);
                     document.getElementById("resultCard").style.display = "block";
-                }
+                    initResultSplitter();
+                    const summary = document.getElementById('result-summary');
+                    if (summary) {
+                        summary.textContent = `${edges.length} 条边`;
+                    }
+                    showCausalStatus(edges.length ? '分析完成，已生成因果边表和可视化图。' : '分析完成，但未发现显著方向边。', 'success');
+                })
+                .catch(error => {
+                    showCausalStatus(error.message || '获取分析结果失败，请稍后重试。', 'error');
+                    throw error;
+                });
+        }
+
+        function startProgressAnimation() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+            }
+            let progress = Math.max(62, Number.parseInt(document.getElementById('progress-percent')?.textContent || '60', 10) || 60);
+            setProgress(progress, '算法运行中');
+            progressTimer = window.setInterval(() => {
+                progress = Math.min(88, progress + Math.max(1, Math.round((88 - progress) / 5)));
+                setProgress(progress, '算法运行中');
+            }, 520);
+        }
+
+        function stopProgressAnimation() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+        }
+
+        // 启动分析过程
+        function startAnalysis(event) {
+            event.preventDefault();
+            if (checkedVariables.length < 2) {
+                showCausalStatus('请至少选择两个数值字段后再运行因果分析。', 'error');
+                return;
+            }
+
+            const uploadButton = document.getElementById('analyzeButton');
+            const algorithmPill = document.getElementById('algorithm-pill');
+            uploadButton.disabled = true;
+            uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            if (algorithmPill) {
+                algorithmPill.textContent = '运行中';
+            }
+            showCausalStatus('任务已提交，正在运行因果发现算法...');
+            startProgressAnimation();
+
+            const formData = new FormData(document.getElementById('uploadForm'));
+            formData.set('background_edge', JSON.stringify(background_edge));
+            formData.set('sel_var', checkedVariables.join(','));
+            let waitingForPolling = false;
+
+            fetch('/causal-analysis.html', {
+                method: 'POST',
+                body: formData
             })
-            .catch(error => console.error("获取数据时出错:", error));
-    }
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok || data.error) {
+                        throw new Error(data.error || data.detail || '分析任务启动失败');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (data.completed || data.status === 'completed') {
+                        stopProgressAnimation();
+                        setProgress(100, '分析完成');
+                        return fetchData();
+                    }
+                    waitingForPolling = true;
+                    intervalId = window.setInterval(checkAnalysisStatus, 900);
+                    return null;
+                })
+                .catch(error => {
+                    stopProgressAnimation();
+                    setProgress(100, '分析失败');
+                    showCausalStatus(error.message || '启动分析时出错，请检查变量类型和算法配置。', 'error');
+                })
+                .finally(() => {
+                    if (!waitingForPolling) {
+                        resetButton();
+                        if (algorithmPill) {
+                            algorithmPill.textContent = '可重新运行';
+                        }
+                    }
+                });
+        }
 
-    let intervalId;
-
-    // 启动分析过程
-    function startAnalysis(event) {
-        event.preventDefault();
-        console.log("开始分析流程");
-
-        const uploadButton = document.getElementById('analyzeButton');
-        uploadButton.disabled = true;
-        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
-
-        console.log("this is background_edge");
-        console.log(background_edge);
-        const formData = new FormData(document.getElementById('uploadForm'));
-
-        formData.append('background_edge', JSON.stringify(background_edge));
-        formData.append('sel_var', checkedVariables)
-
-
-        console.log("发送请求到 /causal-analysis.html");
-
-        fetch('/causal-analysis.html', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())  // 解析为 JSON 数据
-        .then(data => {
-            console.log("收到分析数据:", data);
-            fetchData()
-            resetButton()
-        })
-        .catch(error => {
-            console.error("启动分析时出错:", error);
-            resetButton();
-        });
-    }
-
-    // 检查分析状态
-    function checkAnalysisStatus() {
-        fetch('/check-analysis-status')
-            .then(response => response.json())
-            .then(data => {
-                if (data.completed) {
-                    clearInterval(intervalId);
+        // 检查分析状态
+        function checkAnalysisStatus() {
+            fetch('/check-analysis-status')
+                .then(response => response.json())
+                .then(data => {
+                    setProgress(data.progress ?? (data.completed ? 100 : 76), data.status === 'running' ? '算法运行中' : '等待结果');
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    if (data.completed || data.status === 'completed') {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                        stopProgressAnimation();
+                        setProgress(100, '分析完成');
+                        resetButton();
+                        const algorithmPill = document.getElementById('algorithm-pill');
+                        if (algorithmPill) {
+                            algorithmPill.textContent = '可重新运行';
+                        }
+                        fetchData();
+                    }
+                })
+                .catch(error => {
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                    stopProgressAnimation();
+                    showCausalStatus(error.message || '检查分析状态时出错。', 'error');
                     resetButton();
-                    fetchData();
-                }
-            })
-            .catch(error => {
-                console.error("检查分析状态时出错:", error);
-                clearInterval(intervalId);
-            });
-    }
+                });
+        }
 
-    // 恢复按钮到初始状态
-    function resetButton() {
-        const uploadButton = document.getElementById('analyzeButton');
-        uploadButton.disabled = false;
-        uploadButton.innerHTML = '<i class="fas fa-file-upload"></i> 上传并分析';
-    }
+        // 恢复按钮到初始状态
+        function resetButton() {
+            const uploadButton = document.getElementById('analyzeButton');
+            uploadButton.disabled = false;
+            uploadButton.innerHTML = '数据驱动分析';
+        }
 
-    let currentStep = 1;
-    const totalSteps = 3;
+        let currentStep = 1;
+        const totalSteps = 3;
+        const stepLabels = {
+            1: '数据集配置',
+            2: '背景知识编辑',
+            3: '算法运行'
+        };
 
-    function nextStep() {
-        console.log(document.querySelector(`#step-${currentStep}`));
-        // Hide current step
-        document.querySelector(`#step-${currentStep}`).style.display = 'none';
-        
-        // Increment step
-        currentStep++;
-        console.log(currentStep);
-        
-        // Show next step
-        if (currentStep <= totalSteps) {
-            document.querySelector(`#step-${currentStep}`).style.display = 'block';
+        function nextStep() {
+            if (currentStep === 1 && checkedVariables.length < 2) {
+                showCausalStatus('请至少选择两个数值字段后继续。', 'error');
+                return;
+            }
+            const current = document.querySelector(`#step-${currentStep}`);
+            if (current) {
+                current.style.display = 'none';
+            }
+
+            currentStep = Math.min(totalSteps, currentStep + 1);
+            const next = document.querySelector(`#step-${currentStep}`);
+            if (next) {
+                next.style.display = 'block';
+            }
             updateProgressBar();
-            if(currentStep === 2)createNetworkGraph();
-        } 
-    }
+            if (currentStep === 2) {
+                createNetworkGraph();
+            }
+            if (currentStep === 3) {
+                showCausalStatus(`已选择 ${checkedVariables.length} 个变量、${background_edge.length} 条背景边。请选择算法并运行。`);
+            }
+        }
 
-    function updateProgressBar(completed = false) {
-        const progress = (currentStep - 1) / (totalSteps-1) * 100;
-        document.getElementById('progress-bar').style.width = `${progress}%`;
-    }
+        function updateProgressBar() {
+            const progress = (currentStep - 1) / (totalSteps - 1) * 60;
+            setProgress(progress, stepLabels[currentStep]);
+        }
 
-    // Initialize the progress bar
-    updateProgressBar();
+        // Initialize the progress bar
+        updateProgressBar();
+        updateSelectedSummary();
+        updateEdgeSummary();
 
 </script>
 

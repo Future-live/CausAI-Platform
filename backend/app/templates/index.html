@@ -149,7 +149,6 @@
     </div>
 
     <script>
-        var userDropdown = document.querySelector('.user-dropdown');
         var isDataUploaded = false; // 状态变量，代表数据是否已上传
 
         document.querySelectorAll('.restricted').forEach(function(link) {
@@ -170,23 +169,6 @@
                 isDataUploaded = false;
             });
 
-        document.addEventListener('click', function(event) {
-            var userButton = document.querySelector('.user-info');
-
-            if (!userButton.contains(event.target)) {
-                hideDropdown();
-            }
-        });
-
-        function toggleDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function hideDropdown() {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = 'none';
-        }
     </script>
 <script src="{{ url_for('static', filename='js/app-settings.js') }}"></script>
 </body>

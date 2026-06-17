@@ -42,7 +42,8 @@ body {
     padding: 10px;
     color: var(--text-color);
     border-right: 1px solid #bdc3c7;
-    transition: width 0.3s ease-in-out;
+    transition: width 0.24s ease-out;
+    will-change: width;
     overflow: hidden;
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
@@ -51,7 +52,7 @@ body {
     justify-content: space-between; /* �����������ײ����� */
 }
 
-.sidebar:hover,
+.sidebar.is-hovered,
 .sidebar.menu-open {
     width: 200px;
 }
@@ -64,7 +65,7 @@ body {
     transition: opacity 0.3s ease-in-out;
 }
 
-.sidebar:hover h2,
+.sidebar.is-hovered h2,
 .sidebar.menu-open h2 {
     opacity: 1;
 }
@@ -91,16 +92,40 @@ a i {
 }
 
 a span {
-    margin-left: 15px;
-    display: none;
-    transition: display 0.3s ease-in-out;
+    margin-left: 0;
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    white-space: nowrap;
+    transform: translateX(-4px);
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease,
+        max-width 0.22s ease,
+        visibility 0s linear 0.18s;
 }
 
-.sidebar:hover a span,
-.sidebar:hover .user-info span,
+.sidebar.is-hovered a span,
 .sidebar.menu-open a span,
-.sidebar.menu-open .user-info span {
-    display: block;
+.sidebar.is-hovered .user-info .user-name,
+.sidebar.is-hovered .user-info .user-role,
+.sidebar.menu-open .user-info .user-name,
+.sidebar.menu-open .user-info .user-role {
+    margin-left: 15px;
+    max-width: 150px;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    transition-delay: 0.08s, 0.08s, 0s, 0s;
+}
+
+.sidebar.is-hovered .user-info .user-name,
+.sidebar.is-hovered .user-info .user-role,
+.sidebar.menu-open .user-info .user-name,
+.sidebar.menu-open .user-info .user-role {
+    margin-left: 0;
 }
 
 /* LOGO 区域 */
@@ -123,7 +148,7 @@ a span {
     transform: translateX(-10px); /* 向左偏移，制造动画效果 */
 }
 
-.sidebar:hover #icon-2,
+.sidebar.is-hovered #icon-2,
 .sidebar.menu-open #icon-2 {
     opacity: 1; /* 展开时显示 */
     transform: translateX(0); /* 恢复位置 */
@@ -135,17 +160,21 @@ a span {
     box-sizing: border-box;
 }
 
-.sidebar:not(:hover):not(.menu-open) > a:not(.logo) {
+.sidebar:not(.is-hovered):not(.menu-open) > a:not(.logo) {
     justify-content: center;
     padding: 10px 0;
 }
 
-.sidebar:not(:hover):not(.menu-open) > a:not(.logo) i {
+.sidebar:not(.is-hovered):not(.menu-open) > a:not(.logo):hover {
+    padding: 10px 0;
+}
+
+.sidebar:not(.is-hovered):not(.menu-open) > a:not(.logo) i {
     width: 100%;
     text-align: center;
 }
 
-.sidebar:hover > a:not(.logo) i,
+.sidebar.is-hovered > a:not(.logo) i,
 .sidebar.menu-open > a:not(.logo) i {
     width: 30px;
     text-align: center;
@@ -658,7 +687,7 @@ body.lang-en .user-dropdown a span {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     min-height: 48px;
     margin-top: auto;
     margin-bottom: 18px;
@@ -671,9 +700,10 @@ body.lang-en .user-dropdown a span {
     transition: background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
-.sidebar:hover .user-info,
+.sidebar.is-hovered .user-info,
 .sidebar.menu-open .user-info,
 .user-info.is-open {
+    gap: 8px;
     padding: 8px;
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.18);
@@ -715,20 +745,29 @@ body.lang-en .user-dropdown a span {
 
 .user-meta {
     min-width: 0;
-    display: none;
+    display: flex;
     flex: 1;
     flex-direction: column;
     gap: 2px;
+    max-width: 0;
     opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
     transform: translateX(-4px);
-    transition: opacity 0.22s ease, transform 0.22s ease;
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease,
+        max-width 0.22s ease,
+        visibility 0s linear 0.18s;
 }
 
-.sidebar:hover .user-meta,
+.sidebar.is-hovered .user-meta,
 .sidebar.menu-open .user-meta {
-    display: flex;
+    max-width: 112px;
     opacity: 1;
+    visibility: visible;
     transform: translateX(0);
+    transition-delay: 0.08s, 0.08s, 0s, 0s;
 }
 
 .user-info .user-name,
@@ -736,6 +775,9 @@ body.lang-en .user-dropdown a span {
     margin-left: 0;
     display: block;
     color: #fff;
+    max-width: 0;
+    opacity: 0;
+    visibility: hidden;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -753,14 +795,21 @@ body.lang-en .user-dropdown a span {
 }
 
 .user-menu-indicator {
-    display: none;
+    display: block;
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateX(-4px);
     font-size: 11px;
     color: rgba(255, 255, 255, 0.68);
+    transition: width 0.18s ease, opacity 0.16s ease, transform 0.16s ease;
 }
 
-.sidebar:hover .user-menu-indicator,
+.sidebar.is-hovered .user-menu-indicator,
 .sidebar.menu-open .user-menu-indicator {
-    display: block;
+    width: 12px;
+    opacity: 1;
+    transform: translateX(0);
 }
 
 .user-dropdown {
@@ -808,6 +857,12 @@ body.lang-en .user-dropdown a span {
 .user-dropdown a span {
     display: inline !important;
     margin-left: 0;
+    max-width: none;
+    opacity: 1;
+    visibility: visible;
+    overflow: visible;
+    transform: none;
+    transition: none;
 }
 
 .user-dropdown a:hover {

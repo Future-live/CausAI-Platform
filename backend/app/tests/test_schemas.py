@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from app.schemas.causal import BackgroundEdge, CausalJobCreate
 from app.schemas.dataset import QuantileFilter
 from app.schemas.favorite import FavoriteCreate
+from app.schemas.llm import LLMConfigSaveRequest, LLMProviderConfig, SemanticColumnProfile, SemanticProfileResponse
 from app.schemas.workflow import WorkflowCreate
 
 
@@ -50,3 +51,44 @@ def test_workflow_create_accepts_reproducible_steps() -> None:
     )
 
     assert [step.type for step in workflow.steps] == ["prepare", "columns"]
+
+
+def test_llm_provider_config_normalizes_empty_strings() -> None:
+    config = LLMProviderConfig(api_key="  ", base_url=" https://api.example.com/v1 ", model=" demo ")
+
+    assert config.api_key is None
+    assert config.base_url == "https://api.example.com/v1"
+    assert config.model == "demo"
+
+
+def test_llm_config_save_request_strips_values() -> None:
+    config = LLMConfigSaveRequest(
+        base_url=" https://api.example.com/v1 ",
+        model=" demo ",
+        api_key=" sk-demo ",
+        domain_hint=" education ",
+    )
+
+    assert config.base_url == "https://api.example.com/v1"
+    assert config.model == "demo"
+    assert config.api_key == "sk-demo"
+    assert config.domain_hint == "education"
+
+
+def test_semantic_profile_response_accepts_column_evidence() -> None:
+    response = SemanticProfileResponse(
+        configured=False,
+        summary="local",
+        columns=[
+            SemanticColumnProfile(
+                name="score",
+                dtype="float64",
+                analysis_type="measure",
+                semantic_type="numeric",
+                inferred_role="outcome",
+                evidence=["字段名包含 score"],
+            )
+        ],
+    )
+
+    assert response.columns[0].inferred_role == "outcome"

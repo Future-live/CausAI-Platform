@@ -24,3 +24,4 @@ class User(Base):
     datasets = relationship("Dataset", back_populates="owner", cascade="all, delete-orphan")
     jobs = relationship("AnalysisJob", back_populates="owner", cascade="all, delete-orphan")
     favorites = relationship("FavoriteItem", back_populates="owner", cascade="all, delete-orphan")
+    llm_config = relationship("UserLLMConfig", back_populates="owner", cascade="all, delete-orphan", uselist=False)

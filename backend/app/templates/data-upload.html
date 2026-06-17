@@ -142,6 +142,224 @@
             cursor: pointer; /* 鼠标悬停时手形 */
         }
 
+        .upload-page {
+            gap: 14px;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(47, 139, 196, 0.06), transparent 26%),
+                linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
+        }
+
+        .upload-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 22px 24px;
+            border: 1px solid #dde6f4;
+            border-left: 6px solid #273c75;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.92);
+            box-shadow: 0 10px 24px rgba(31,45,79,0.06);
+        }
+
+        .upload-header h1 {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            color: #1f2d4a;
+            font-size: 28px;
+            line-height: 1.2;
+            font-weight: 900;
+        }
+
+        .upload-primary-action {
+            position: static;
+            top: auto;
+            right: auto;
+            min-width: 150px;
+            min-height: 44px;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+            background: #273c75;
+            box-shadow: 0 12px 24px rgba(39,60,117,0.18);
+        }
+
+        .upload-primary-action:hover {
+            background: #324b8b;
+            transform: translateY(-1px);
+        }
+
+        .upload-history-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            border: 1px solid #dde6f4;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(31,45,79,0.07);
+        }
+
+        .history-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border-bottom: 1px solid #edf2f8;
+            background: linear-gradient(180deg, #ffffff, #f8fbff);
+        }
+
+        .history-title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #1f2d4a;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .history-title small {
+            color: #7a879c;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .upload-history-card .search-box-container {
+            width: min(520px, 46%);
+            margin: 0;
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .upload-history-card .search-box {
+            height: 42px;
+            padding: 0 14px 0 40px;
+            border: 1px solid #d7e1ef;
+            border-radius: 8px;
+            background:
+                linear-gradient(90deg, rgba(39,60,117,0.05), rgba(39,60,117,0.05)) left 13px center / 14px 14px no-repeat,
+                #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            color: #263856;
+        }
+
+        .history-table-wrap {
+            overflow: auto;
+        }
+
+        .upload-history-card table {
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .upload-history-card th {
+            padding: 14px 18px;
+            font-size: 14px;
+            letter-spacing: 0;
+            text-align: left;
+            text-transform: none;
+            background: #273c75;
+        }
+
+        .upload-history-card th:nth-child(2),
+        .upload-history-card th:nth-child(3),
+        .upload-history-card td:nth-child(2),
+        .upload-history-card td:nth-child(3) {
+            text-align: center;
+        }
+
+        .upload-history-card td {
+            padding: 14px 18px;
+            background: #ffffff;
+            color: #31405d;
+            border-bottom: 1px solid #edf2f8;
+            font-size: 14px;
+            transition: background-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .upload-history-card tr:nth-child(odd) td,
+        .upload-history-card tr:nth-child(even) td {
+            background: #ffffff;
+        }
+
+        .upload-history-card tbody tr:hover td {
+            background: #f5f8fd;
+        }
+
+        .file-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            font-weight: 800;
+        }
+
+        .file-name-cell i {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #273c75;
+            background: #edf3ff;
+        }
+
+        .file-name-cell span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .upload-time {
+            color: #5f6e86;
+            font-weight: 700;
+        }
+
+        .history-action-btn {
+            min-width: 116px;
+            height: 38px;
+            border: 0;
+            border-radius: 8px;
+            background: #273c75;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(39,60,117,0.14);
+            cursor: pointer;
+        }
+
+        .history-action-btn:hover {
+            background: #324b8b;
+        }
+
+        .history-empty td {
+            height: 180px;
+            color: #7a879c;
+            font-size: 15px;
+            font-weight: 800;
+            text-align: center !important;
+            background: #fbfcff !important;
+        }
+
+        .upload-footer-actions {
+            margin-top: auto;
+            justify-content: flex-end;
+            padding-top: 8px;
+        }
+
+        .upload-footer-actions .bots {
+            min-width: 120px;
+            border-radius: 8px;
+        }
 
     </style>
 </head>
@@ -174,38 +392,50 @@
         {% include 'partials/sidebar_user.html' %}
     </div>
     
-    <div class="content">
-        <h1>数据上传</h1>
+    <div class="content upload-page">
+        <div class="upload-header">
+            <div>
+                <h1>数据上传</h1>
+            </div>
+            <button id="upload-button" onclick="document.getElementById('file-upload').click();" class="custom-file-upload upload-primary-action">
+                <i class="fas fa-upload"></i> 新建分析
+            </button>
+        </div>
 
         <form id="upload-form" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
             <input id="file-upload" type="file" name="file" accept=".csv,.tsv,.txt,.json,.jsonl,.xlsx,.xls" required style="display: none;">
         </form>
 
-        <button id="upload-button" onclick="document.getElementById('file-upload').click();" class="custom-file-upload">
-            <i class="fas fa-upload"></i> 新建分析
-        </button>
-
-
-        <div class="search-box-container">
-            <input type="text" class="search-box" id="search-box" placeholder="搜索历史记录">
+        <div class="upload-history-card">
+            <div class="history-toolbar">
+                <div class="history-title">
+                    历史数据集
+                    <small id="history-count">0 条记录</small>
+                </div>
+                <div class="search-box-container">
+                    <input type="text" class="search-box" id="search-box" placeholder="搜索文件名">
+                </div>
+            </div>
+            <div class="history-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>文件名</th>
+                            <th>上传时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <!-- 动态插入历史上传数据 -->
+                    </tbody>
+                </table>
+            </div>
+            <p class="error-message" id="error-message">未搜索到匹配的文件。</p>
+            <div class="pagination" id="pagination">
+                <!-- 分页按钮将动态插入 -->
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>文件名</th>
-                    <th>上传时间</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="history-tbody">
-                <!-- 动态插入历史上传数据 -->
-            </tbody>
-        </table>
-        <p class="error-message" id="error-message">未搜索到匹配的文件。</p>
-        <div class="pagination" id="pagination">
-            <!-- 分页按钮将动态插入 -->
-        </div>
-        <div class="buttons">
+        <div class="buttons upload-footer-actions">
             <button onclick="location.href='index.html'" class="bots">返回主页</button>
             <button onclick="location.href='data-preparation.html'" class="bots">数据准备</button>
         </div>
@@ -403,28 +633,57 @@ let data = [];
             pagination.appendChild(ellipsis);
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
+        function formatUploadTime(value) {
+            if (!value) {
+                return '-';
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        }
 
         function displayTable(data, page) {
             var tbody = document.getElementById('history-tbody');
+            var historyCount = document.getElementById('history-count');
             tbody.innerHTML = '';
+            if (historyCount) {
+                historyCount.textContent = `${data.length} 条记录`;
+            }
             var start = (page - 1) * rowsPerPage;
             var end = start + rowsPerPage;
             var paginatedData = data.slice(start, end);
 
             if (paginatedData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">没有历史文件</td></tr>';
+                tbody.innerHTML = '<tr class="history-empty"><td colspan="3">没有历史文件</td></tr>';
             } else {
                 paginatedData.forEach(item => {
                     var tr = document.createElement('tr');
                     var filenameTd = document.createElement('td');
-                    filenameTd.textContent = item.filename;
+                    filenameTd.innerHTML = `<div class="file-name-cell"><i class="fas fa-file-alt"></i><span title="${escapeHtml(item.filename)}">${escapeHtml(item.filename)}</span></div>`;
                     var dateTd = document.createElement('td');
-                    dateTd.textContent = item.upload_time;
+                    dateTd.innerHTML = `<span class="upload-time">${escapeHtml(formatUploadTime(item.upload_time))}</span>`;
                     var actionTd = document.createElement('td');
                     var button = document.createElement('button');
-                    button.className = 'bots';
-                    button.textContent = '下载文件';
+                    button.className = 'history-action-btn';
+                    button.innerHTML = '<i class="fas fa-download"></i> 下载文件';
                     button.onclick = function(event) {
                         event.stopPropagation(); // 阻止事件冒泡
                         window.location.href = '/uploads/' + item.filename; // 点击按钮下载文件
@@ -486,24 +745,6 @@ let data = [];
                 document.getElementById('search-box').focus();
             });
         }
-
-        function toggleDropdown(event) {
-            var dropdown = document.querySelector('.user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-            event.stopPropagation(); // 防止事件冒泡，避免点击其他地方时自动关闭
-        }
-
-        // 确保在点击用户名时调用 toggleDropdown
-        document.querySelector('.user-info').addEventListener('click', toggleDropdown);
-
-        // 点击下拉菜单外部时隐藏下拉菜单
-        window.addEventListener('click', function(event) {
-            var dropdown = document.querySelector('.user-dropdown');
-            if (event.target !== dropdown && !dropdown.contains(event.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-
 
         // 设置弹窗功能
         var settingsButton = document.getElementById('settings-button');
